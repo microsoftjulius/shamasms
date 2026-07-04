@@ -28,7 +28,7 @@
  <div class="flex items-center gap-2">
  @auth<div class="rounded-lg border border-sky-100 bg-sky-50 px-3 py-2 text-sm font-bold text-sky-800">Balance {{ number_format(auth()->user()->sms_balance) }}</div>@endauth
  @auth
-<form method="POST" action="{{ route('logout') }}">@csrf<button class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold hover:bg-slate-100">Logout</button></form>@else<a href="{{ route('login') }}" class="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Login</a><a href="{{ route('register') }}" class="btn-primary !py-2 !px-4 !text-sm">Get started</a>@endauth
+<form method="POST" action="{{ route('logout') }}">@csrf<button class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold hover:bg-slate-100">Logout</button></form>@else<a href="{{ route('login') }}" class="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Login</a><a href="{{ route('login') }}" class="btn-primary !py-2 !px-4 !text-sm">Get started</a>@endauth
  </div>
  </div>
 </nav>
@@ -487,7 +487,7 @@ curl https://shamasms.com/api/v2/balance \
  <p class="mt-3 text-sky-100">Create a free account, generate an API key in Settings, and send your first message in minutes.</p>
  <div class="mt-6 flex flex-wrap justify-center gap-4">
  @guest
- <a href="{{ route('register') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-black text-sky-700 shadow-lg hover:bg-sky-50">Create free account &rarr;</a>
+ <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-black text-sky-700 shadow-lg hover:bg-sky-50">Create free account &rarr;</a>
  @else
  <a href="{{ route('settings') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-black text-sky-700 shadow-lg hover:bg-sky-50">Get your API key &rarr;</a>
  @endguest

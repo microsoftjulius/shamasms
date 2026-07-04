@@ -65,7 +65,7 @@
         {{-- Auth buttons --}}
         <div class="flex min-w-0 items-center gap-2">
             <a href="{{ route('login') }}" class="hidden rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 sm:inline-flex">Login</a>
-            <a href="{{ route('register') }}" class="btn-primary shrink-0 !py-2 !px-4 !text-sm sm:!px-5">Get started free</a>
+            <a href="{{ route('login') }}" class="btn-primary shrink-0 !py-2 !px-4 !text-sm sm:!px-5">Get started free</a>
         </div>
     </div>
 </header>
@@ -100,7 +100,7 @@
             </p>
 
             <div class="mt-8 flex flex-wrap items-center gap-3">
-                <a href="{{ route('register') }}" class="btn-primary">
+                <a href="{{ route('login') }}" class="btn-primary">
                     Start sending SMS free
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>
@@ -349,7 +349,7 @@
     </div>
 
     <div class="mt-12 text-center">
-        <a href="{{ route('register') }}" class="btn-primary">
+        <a href="{{ route('login') }}" class="btn-primary">
             Create your free account
         </a>
     </div>
@@ -426,7 +426,7 @@
                 <li class="pricing-check"><svg class="h-5 w-5 shrink-0 text-sky-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> API access (sandbox)</li>
                 <li class="pricing-check text-slate-400"><svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> No SMS credits included</li>
             </ul>
-            <a href="{{ route('register') }}" class="btn-outline w-full justify-center">Sign up free</a>
+            <a href="{{ route('login') }}" class="btn-outline w-full justify-center">Sign up free</a>
         </div>
 
         {{-- Pay as you go (popular) --}}
@@ -446,7 +446,7 @@
                 <li class="pricing-check"><svg class="h-5 w-5 shrink-0 text-sky-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> API access (live)</li>
                 <li class="pricing-check"><svg class="h-5 w-5 shrink-0 text-sky-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Me 2 U credit sharing</li>
             </ul>
-            <a href="{{ route('register') }}" class="btn-primary w-full justify-center">Get started</a>
+            <a href="{{ route('login') }}" class="btn-primary w-full justify-center">Get started</a>
         </div>
 
         {{-- Enterprise --}}
@@ -505,7 +505,7 @@
                 </ul>
 
                 <div class="mt-8 flex gap-3">
-                    <a href="{{ route('register') }}" class="btn-primary">Get your API key</a>
+                    <a href="{{ route('login') }}" class="btn-primary">Get your API key</a>
                 </div>
             </div>
 
@@ -547,7 +547,7 @@
             Join businesses, schools, and developers already using ShamaSMS to send faster, smarter, and more personally.
         </p>
         <div class="mt-8 flex flex-wrap justify-center gap-4">
-            <a href="{{ route('register') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-black text-sky-700 shadow-xl shadow-sky-900/20 transition hover:bg-sky-50 active:scale-95">
+            <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-black text-sky-700 shadow-xl shadow-sky-900/20 transition hover:bg-sky-50 active:scale-95">
                 Create free account
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             </a>
@@ -597,7 +597,7 @@
             <div>
                 <h3 class="mb-4 text-sm font-black uppercase tracking-widest text-slate-800">Account</h3>
                 <ul class="flex flex-col gap-2 text-sm text-slate-600">
-                    <li><a href="{{ route('register') }}" class="hover:text-sky-600">Create account</a></li>
+                    <li><a href="{{ route('login') }}" class="hover:text-sky-600">Create account</a></li>
                     <li><a href="{{ route('login') }}" class="hover:text-sky-600">Login</a></li>
                 </ul>
             </div>
