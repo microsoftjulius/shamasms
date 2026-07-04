@@ -1,5 +1,5 @@
 <div class="auth-shell">
-    <div class="auth-copy">
+    <div class="auth-copy hidden lg:block">
         <a href="{{ route('home') }}" class="mb-8 inline-flex items-center gap-2 font-black text-sky-700">
             <span class="grid h-10 w-10 place-items-center rounded-lg bg-sky-500 text-white">S</span>
             <span>ShamaSMS</span>

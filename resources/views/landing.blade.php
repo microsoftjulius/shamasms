@@ -462,7 +462,7 @@
                 <li class="pricing-check"><svg class="h-5 w-5 shrink-0 text-sky-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Volume price negotiation</li>
                 <li class="pricing-check"><svg class="h-5 w-5 shrink-0 text-sky-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Priority support</li>
             </ul>
-            <a href="mailto:hello&#64;shamasms.com" class="btn-outline w-full justify-center">Contact us</a>
+            <a href="tel:+256702133428" class="btn-outline w-full justify-center">Call us</a>
         </div>
 
     </div>
