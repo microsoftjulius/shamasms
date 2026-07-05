@@ -73,4 +73,23 @@ class User extends Authenticatable implements MustVerifyEmail
             $this->notify(new VerifyEmail);
         }
     }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $resetUrl = url(route('password.reset', [
+            'token' => $token,
+            'email' => $this->getEmailForPasswordReset(),
+        ], false));
+
+        $sent = app(\App\Services\SendcranePasswordResetService::class)->send(
+            $this->getEmailForPasswordReset(),
+            $this->name ?? $this->email,
+            $resetUrl,
+        );
+
+        if (! $sent) {
+            // Fallback to Laravel's default reset email via the log mailer
+            $this->notify(new \Illuminate\Auth\Notifications\ResetPassword($token));
+        }
+    }
 }
