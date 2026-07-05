@@ -41,6 +41,23 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="overflow-x-hidden bg-white text-slate-950 antialiased">
+<div class="landing-header-fixed">
+<div class="landing-topbar bg-sky-600 text-white" role="banner">
+ <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2 text-xs font-semibold sm:px-6 lg:px-8">
+ <div class="flex flex-wrap items-center gap-4">
+ <a href="tel:+256702133428" class="flex items-center gap-1.5 text-white hover:text-sky-200 transition">
+ <svg class="h-3.5 w-3.5 shrink-0 fill-current" viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+ +256 702 133428
+ </a>
+ <a href="mailto:support@shamasms.com" class="flex items-center gap-1.5 text-white hover:text-sky-200 transition">
+ <svg class="h-3.5 w-3.5 shrink-0 fill-current" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+ support@shamasms.com
+ </a>
+ </div>
+ <span class="hidden text-sky-200 sm:inline">Fast &amp; reliable bulk SMS &middot; Uganda</span>
+ </div>
+</div>
+
 
 {{-- ══════════════════════════════════════════════════════════════════════
      NAVIGATION
@@ -49,8 +66,8 @@
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
         {{-- Logo --}}
         <a href="/" class="flex min-w-0 items-center gap-2.5 font-black text-sky-700" aria-label="ShamaSMS home">
-            <span class="grid h-10 w-10 place-items-center rounded-xl bg-sky-500 text-lg text-white shadow-sm shadow-sky-300" aria-hidden="true">S</span>
-            <span class="hidden text-lg tracking-tight sm:inline">ShamaSMS</span>
+            <svg viewBox="0 0 48 48" class="h-9 w-9 shrink-0" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#0ea5e9"/><path d="M14 20c0-1.1.9-2 2-2h16a2 2 0 0 1 2 2v.01L24 26 14 20.01V20z" fill="white"/><path d="M14 22.5l9.4 6.1a1.2 1.2 0 0 0 1.2 0l9.4-6.1V32a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2V22.5z" fill="white"/></svg>
+            <span class="text-lg tracking-tight">ShamaSMS</span>
         </a>
 
         {{-- Desktop nav --}}
@@ -64,23 +81,23 @@
 
         {{-- Auth buttons --}}
         <div class="flex min-w-0 items-center gap-2">
-            <a href="{{ route('login') }}" class="hidden rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 sm:inline-flex">Login</a>
-            <a href="{{ route('login') }}" class="btn-primary shrink-0 !py-2 !px-4 !text-sm sm:!px-5">Get started free</a>
+            <a href="{{ route('login') }}" class="btn-primary shrink-0 !py-2 !px-4 !text-sm sm:!px-5">Login</a>
         </div>
     </div>
 </header>
+</div>
 
-<main>
+<main class="landing-main">
 
 {{-- ══════════════════════════════════════════════════════════════════════
      HERO
 ═══════════════════════════════════════════════════════════════════════ --}}
 <section class="landing-hero border-b border-sky-100" aria-labelledby="hero-heading">
-    <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-24">
+    <div class="mx-auto grid max-w-7xl items-center gap-8 px-4 pb-8 pt-4 sm:px-6 sm:pb-14 sm:pt-5 lg:grid-cols-2 lg:px-8 lg:pb-24 lg:pt-6">
 
         {{-- Copy --}}
         <div class="min-w-0">
-            <p class="section-eyebrow">
+ <p class="section-eyebrow">
                 <svg class="h-3 w-3 fill-sky-500" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4"/></svg>
                 Trusted bulk SMS platform · Uganda
             </p>
@@ -101,17 +118,18 @@
 
             <div class="mt-8 flex flex-wrap items-center gap-3">
                 <a href="{{ route('login') }}" class="btn-primary">
-                    Start sending SMS free
+                    Start sending free SMS
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>
                 <a href="#how-it-works" class="btn-outline">See how it works</a>
+ <a href="tel:+256702133428" class="btn-outline flex items-center gap-2"><svg class="h-4 w-4 shrink-0 fill-current" viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>Call us</a>
             </div>
         </div>
 
         {{-- Hero image --}}
-        <div class="min-w-0 overflow-hidden lg:flex lg:justify-end">
+        <div class="hidden lg:flex lg:justify-end lg:min-w-0">
             <div class="relative w-full max-w-full overflow-hidden rounded-3xl lg:max-w-lg">
-                <div class="absolute inset-0 rounded-3xl bg-gradient-to-br from-sky-100 to-cyan-50 opacity-70 blur-2xl" aria-hidden="true"></div>
+                
                 <img
                     src="/images/bulk-sms.png"
                     alt="Bulk SMS dashboard illustration showing messages being sent to multiple recipients"
@@ -538,6 +556,26 @@
 {{-- ══════════════════════════════════════════════════════════════════════
      CTA BAND
 ═══════════════════════════════════════════════════════════════════════ --}}
+<section class="border-y border-slate-100 bg-slate-50 py-16">
+ <div class="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+ <p class="section-eyebrow mx-auto mb-3">Support</p>
+ <h2 class="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Need Assistance?</h2>
+ <p class="mt-4 text-base leading-7 text-slate-600">Our support team is ready to help you get started, troubleshoot any issue, or answer questions about the API. Reach us by phone or email.</p>
+ <div class="mt-8 flex flex-wrap justify-center gap-4">
+ <a href="tel:+256702133428" class="inline-flex items-center gap-2 rounded-xl border-2 border-sky-500 bg-sky-500 px-8 py-3.5 text-sm font-black uppercase tracking-widest text-white shadow-md transition hover:bg-sky-600 hover:border-sky-600">
+ <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+ Talk to Support
+ </a>
+ <a href="mailto:support@shamasms.com" class="inline-flex items-center gap-2 rounded-xl border-2 border-slate-300 bg-white px-8 py-3.5 text-sm font-black uppercase tracking-widest text-slate-700 shadow-sm transition hover:border-sky-500 hover:text-sky-700">
+ <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+ Email Support
+ </a>
+ </div>
+ <p class="mt-5 text-sm text-slate-500">Or call us: <a href="tel:+256702133428" class="font-bold text-sky-600 hover:underline">+256 702 133428</a> &nbsp;&middot;&nbsp; <a href="mailto:support@shamasms.com" class="font-bold text-sky-600 hover:underline">support@shamasms.com</a></p>
+ </div>
+</section>
+
+
 <section class="cta-band py-20" aria-labelledby="cta-heading">
     <div class="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
         <h2 id="cta-heading" class="text-4xl font-black tracking-tight text-white sm:text-5xl">

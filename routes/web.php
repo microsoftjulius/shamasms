@@ -8,6 +8,7 @@ use App\Livewire\App\Me2U;
 use App\Livewire\App\Phonebook;
 use App\Livewire\App\SentMessages;
 use App\Livewire\App\Settings;
+use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -24,6 +25,7 @@ Route::view('/developers', 'developers')->name('developers');
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', Login::class)->name('login');
     Route::get('/signup', Register::class)->name('register');
+ Route::get('/forgot-password', ForgotPassword::class)->name('password.request');
 });
 
 Route::middleware('auth')->group(function (): void {

@@ -41,4 +41,12 @@ return [
         'sandbox' => env('UGSMS_SANDBOX', false),
     ],
 
+    'sendcrane' => [
+        'base_url' => env('SENDCRANE_BASE_URL', 'https://sendcrane.com/api/v1'),
+        'endpoint' => env('SENDCRANE_ENDPOINT', '/email/send'),
+        'api_key' => env('SENDCRANE_API_KEY'),
+        'sandbox' => env('SENDCRANE_SANDBOX', false),
+        'verification_template_type' => env('SENDCRANE_VERIFICATION_TEMPLATE_TYPE', 'notification'),
+    ],
+
 ];

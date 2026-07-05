@@ -14,7 +14,7 @@
                 <span>ShamaSMS</span>
             </div>
             <h1 class="text-2xl font-black">Verify your email</h1>
-            <p class="mt-3 leading-7 text-slate-700">A verification link has been sent to your email address. ShamaSMS is prepared for Sendcrane-backed verification mail through the admin integration settings.</p>
+            <p class="mt-3 leading-7 text-slate-700">A verification link has been sent to your email address through Sendcrane. If it does not appear soon, check your spam or promotions folder, then resend the link.</p>
             @if(session('status') === 'verification-link-sent')
                 <p class="mt-4 rounded-lg bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-800">A fresh verification link has been sent.</p>
             @endif
