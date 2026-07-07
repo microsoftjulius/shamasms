@@ -9,12 +9,12 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-950 antialiased" data-route-name="{{ request()->route()?->getName() }}">
     <nav class="sticky top-0 z-30 border-b border-sky-100 bg-white/95 backdrop-blur">
-        <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
-            <a href="{{ route('compose') }}" class="mr-auto flex items-center gap-2 font-black tracking-tight text-sky-700 sm:mr-4">
+        <div class="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-3 px-4 py-3 sm:flex sm:flex-wrap sm:px-6 lg:px-8">
+            <a href="{{ route('home') }}" class="flex min-w-0 items-center gap-2 font-black tracking-tight text-sky-700 sm:mr-4">
                 <span class="grid h-10 w-10 place-items-center rounded-lg bg-sky-500 text-white">S</span>
                 <span>ShamaSMS</span>
             </a>
-            <div class="order-3 -mx-4 flex w-[calc(100%+2rem)] gap-1 overflow-x-auto px-4 pb-1 text-sm font-semibold sm:order-none sm:mx-0 sm:w-auto sm:flex-1 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+            <div class="order-3 col-span-2 flex w-full flex-wrap gap-1 text-xs font-semibold sm:order-none sm:col-span-1 sm:w-auto sm:flex-1 sm:text-sm">
                 <a data-tour="nav-compose" class="nav-link @if(request()->routeIs('compose')) active @endif" href="{{ route('compose') }}">Compose SMS</a>
                 <a data-tour="nav-sent" class="nav-link @if(request()->routeIs('sent')) active @endif" href="{{ route('sent') }}">Sent</a>
                 <a data-tour="nav-phonebook" class="nav-link @if(request()->routeIs('phonebook')) active @endif" href="{{ route('phonebook') }}">Phonebook</a>
@@ -26,14 +26,13 @@
                     <a class="nav-link @if(request()->routeIs('admin.*')) active @endif" href="{{ route('admin.dashboard') }}">Admin</a>
                 @endif
             </div>
-            <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex flex-col items-end justify-end gap-1 sm:flex-row sm:items-center sm:gap-3">
                 <div data-tour="credits" class="rounded-lg border border-sky-100 bg-sky-50 px-3 py-2 text-sm font-bold text-sky-800">
                     My credits {{ number_format(auth()->user()->sms_balance) }}
                 </div>
-                <button type="button" data-tour-start class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-black text-white hover:bg-slate-800">Tour</button>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold hover:bg-slate-100">Logout</button>
+                    <button class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold hover:bg-slate-100 sm:py-2">Logout</button>
                 </form>
             </div>
         </div>
@@ -46,7 +45,6 @@
         {{ $slot }}
     </main>
 
-    @include('partials.tour')
     @livewireScripts
 </body>
 </html>

@@ -21,7 +21,7 @@
             </div>
 
             @if($recipient_mode === 'typed')
-                <label class="label">Recipient rows <span class="req">*</span><textarea wire:model="typed_recipients" class="field min-h-36" placeholder="0700000000&#10;256750000000&#10;+256770000000"></textarea></label>
+                <label class="label">Recipient rows <span class="req">*</span><textarea wire:model="typed_recipients" class="field min-h-36" placeholder="0700000000,070000000,256700000000,25670000000,+25670000000, +25670000000"></textarea></label>
             @elseif($recipient_mode === 'upload')
                 <label class="label">Upload CSV/XLS-style file <span class="req">*</span><input wire:model="recipient_file" type="file" class="field bg-white"></label>
             @else
@@ -63,7 +63,7 @@
 
             <div data-tour="delivery-mode">
                 <p class="mb-2 text-sm font-black text-slate-800">Delivery</p>
-                <div class="segmented">
+                <div class="radio-list">
                     <label><input wire:model.live="send_when" type="radio" value="now"> <span>Send now</span></label>
                     <label><input wire:model.live="send_when" type="radio" value="later"> <span>Send later</span></label>
                 </div>

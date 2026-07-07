@@ -50,7 +50,7 @@
     }
 
     .nav-link {
-        @apply shrink-0 rounded-lg px-3 py-2 text-slate-700 hover:bg-sky-50 hover:text-sky-800;
+        @apply shrink-0 rounded-lg px-2.5 py-2 text-slate-700 hover:bg-sky-50 hover:text-sky-800 sm:px-3;
     }
 
     .nav-link.active {
@@ -71,6 +71,22 @@
 
     .segmented label:has(input:checked) {
         @apply bg-sky-500 text-white shadow-sm;
+    }
+
+    .radio-list {
+        @apply grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 sm:grid-cols-2;
+    }
+
+    .radio-list label {
+        @apply flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm font-black text-slate-700 hover:border-sky-200 hover:bg-sky-50;
+    }
+
+    .radio-list input {
+        @apply h-4 w-4 shrink-0 border-slate-300 text-sky-600 focus:ring-sky-500;
+    }
+
+    .radio-list label:has(input:checked) {
+        @apply border-sky-300 bg-sky-50 text-sky-900 ring-2 ring-sky-100;
     }
 
     .feature-card {

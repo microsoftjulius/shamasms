@@ -78,6 +78,7 @@ class ComposeSms extends Component
 
         $message = SmsMessage::query()->create([
             'user_id' => $user->id,
+            'contact_group_id' => $this->recipient_mode === 'group' ? $this->contact_group_id : null,
             'sender_id' => $this->sender_id ?: null,
             'body' => $this->body,
             'mode' => $this->personalized ? 'personalized' : 'standard',

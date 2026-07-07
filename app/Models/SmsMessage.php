@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'user_id',
+    'contact_group_id',
     'sender_id',
     'body',
     'mode',
@@ -38,6 +39,11 @@ class SmsMessage extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function contactGroup(): BelongsTo
+    {
+        return $this->belongsTo(ContactGroup::class);
     }
 
     public function recipients(): HasMany
