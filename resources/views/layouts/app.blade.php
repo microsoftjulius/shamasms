@@ -9,12 +9,23 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-950 antialiased" data-route-name="{{ request()->route()?->getName() }}">
     <nav class="sticky top-0 z-30 border-b border-sky-100 bg-white/95 backdrop-blur">
-        <div class="mx-auto grid max-w-7xl grid-cols-[auto_1fr] items-center gap-3 px-3 py-3 sm:flex sm:flex-wrap sm:px-6 lg:px-8">
-            <a href="{{ route('home') }}" class="flex min-w-0 items-center gap-2 font-black tracking-tight text-sky-700 sm:mr-4">
-                <span class="grid h-9 w-9 place-items-center rounded-lg bg-sky-500 text-white sm:h-10 sm:w-10">S</span>
-                <span class="text-sm sm:text-base">ShamaSMS</span>
-            </a>
-            <div class="order-3 col-span-2 flex w-full flex-wrap gap-1 text-xs font-semibold sm:order-none sm:col-span-1 sm:w-auto sm:flex-1 sm:text-sm">
+        <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-3 py-3 sm:px-6 lg:px-8">
+            <div class="flex w-full items-center justify-between gap-2 sm:w-auto sm:flex-1 sm:justify-start">
+                <a href="{{ route('home') }}" class="flex min-w-0 items-center gap-2 font-black tracking-tight text-sky-700 sm:mr-4">
+                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-sky-500 text-white sm:h-10 sm:w-10">S</span>
+                    <span class="text-sm sm:text-base">ShamaSMS</span>
+                </a>
+                <div class="ml-auto flex min-w-0 items-center justify-end gap-1.5 sm:gap-3">
+                    <div data-tour="credits" class="whitespace-nowrap rounded-lg border border-sky-100 bg-sky-50 px-2 py-1.5 text-xs font-bold text-sky-800 sm:px-3 sm:py-2 sm:text-sm">
+                        My credits {{ number_format(auth()->user()->sms_balance) }}
+                    </div>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button class="whitespace-nowrap rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-semibold hover:bg-slate-100 sm:px-3 sm:py-2 sm:text-sm">Logout</button>
+                    </form>
+                </div>
+            </div>
+            <div class="flex w-full flex-wrap gap-1 text-xs font-semibold sm:w-auto sm:flex-1 sm:text-sm">
                 <a data-tour="nav-compose" class="nav-link @if(request()->routeIs('compose')) active @endif" href="{{ route('compose') }}">Compose SMS</a>
                 <a data-tour="nav-sent" class="nav-link @if(request()->routeIs('sent')) active @endif" href="{{ route('sent') }}">Sent</a>
                 <a data-tour="nav-phonebook" class="nav-link @if(request()->routeIs('phonebook')) active @endif" href="{{ route('phonebook') }}">Phonebook</a>
@@ -25,15 +36,6 @@
                 @if(auth()->user()->is_admin)
                     <a class="nav-link @if(request()->routeIs('admin.*')) active @endif" href="{{ route('admin.dashboard') }}">Admin</a>
                 @endif
-            </div>
-            <div class="ml-auto flex min-w-0 items-center justify-end gap-1.5 sm:gap-3">
-                <div data-tour="credits" class="whitespace-nowrap rounded-lg border border-sky-100 bg-sky-50 px-2 py-1.5 text-xs font-bold text-sky-800 sm:px-3 sm:py-2 sm:text-sm">
-                    My credits {{ number_format(auth()->user()->sms_balance) }}
-                </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="whitespace-nowrap rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-semibold hover:bg-slate-100 sm:px-3 sm:py-2 sm:text-sm">Logout</button>
-                </form>
             </div>
         </div>
     </nav>
