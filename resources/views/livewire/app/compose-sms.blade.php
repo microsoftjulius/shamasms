@@ -13,7 +13,7 @@
 
             <div data-tour="recipient-mode">
                 <p class="mb-2 text-sm font-black text-slate-800">Recipients</p>
-                <div class="segmented">
+                <div class="radio-list sm:grid-cols-3">
                     <label><input wire:model.live="recipient_mode" type="radio" value="typed"> <span>Type</span></label>
                     <label><input wire:model.live="recipient_mode" type="radio" value="upload"> <span>Upload</span></label>
                     <label><input wire:model.live="recipient_mode" type="radio" value="group"> <span>Phonebook group</span></label>
