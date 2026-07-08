@@ -7,8 +7,21 @@
         </div>
         <div class="mt-6 grid gap-4">
             <label class="label">Amount UGX <span class="req">*</span><input wire:model="amount" type="number" min="500" class="field"></label>
-            <label class="label">Mobile money number <span class="req">*</span><input wire:model="phone" class="field" placeholder="256700000000"></label>
+            <label class="label">Mobile money number <span class="req">*</span><input wire:model="phone" class="field" placeholder="0700000000"></label>
         </div>
+        @if($tiers->isNotEmpty())
+            <div class="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <h2 class="text-sm font-black text-slate-800">Price tiers</h2>
+                <div class="mt-3 grid gap-2 text-sm text-slate-700">
+                    @foreach($tiers as $tier)
+                        <div class="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2">
+                            <span class="font-bold">{{ $tier->name }} from UGX {{ number_format($tier->min_amount) }}</span>
+                            <span class="font-black text-sky-800">UGX {{ number_format($tier->sms_unit_price) }}/SMS</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
         @foreach($errors->all() as $error)
             <p class="mt-2 text-sm font-semibold text-red-600">{{ $error }}</p>
         @endforeach

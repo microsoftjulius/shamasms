@@ -7,19 +7,22 @@ use Livewire\Component;
 
 class Login extends Component
 {
-    public string $email = '';
+    public string $username = '';
     public string $password = '';
     public bool $remember = false;
 
     public function login(): void
     {
-        $credentials = $this->validate([
-            'email' => ['required', 'email'],
+        $data = $this->validate([
+            'username' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt($credentials, $this->remember)) {
-            $this->addError('email', 'These details do not match a ShamaSMS account.');
+        if (! Auth::attempt([
+            'username' => $data['username'],
+            'password' => $data['password'],
+        ], $this->remember)) {
+            $this->addError('username', 'These details do not match a ShamaSMS account.');
             return;
         }
 

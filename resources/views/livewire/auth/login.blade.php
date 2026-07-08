@@ -6,15 +6,15 @@
         </a>
         <h1 class="text-4xl font-black tracking-normal text-white">Welcome back.</h1>
         <p class="mt-4 max-w-xl text-lg leading-8 text-white">Your SMS balance is visible across the app, and Compose SMS is always the first working screen after login.</p>
-        <div class="mt-8 max-w-xl rounded-lg border border-sky-200 bg-white/70 p-5 shadow-sm shadow-sky-100">
-            <p class="text-sm font-black text-white">Fast workflow</p>
-            <p class="mt-2 text-sm leading-6 text-white">Login, choose recipients, set the sender ID, send now or schedule later. No sidebar, no clutter.</p>
+        <div class="mt-8 max-w-xl rounded-lg border border-sky-200 bg-white/80 p-5 shadow-sm shadow-sky-100">
+            <p class="text-sm font-black text-slate-950">Fast workflow</p>
+            <p class="mt-2 text-sm leading-6 text-slate-700">Login, choose recipients, set the sender ID, send now or schedule later. No sidebar, no clutter.</p>
         </div>
     </div>
     <form wire:submit="login" class="auth-card">
         <h2 class="text-2xl font-black">Login</h2>
         <div class="mt-5 grid gap-4">
-            <label class="label">Email <span class="req">*</span><input wire:model="email" type="email" class="field" placeholder="your@email.com"></label>
+            <label class="label">Username <span class="req">*</span><input wire:model="username" class="field" placeholder="Enter your username"></label>
             <label class="label">Password <span class="req">*</span>
                 <span class="password-wrap">
                     <input id="login-password" wire:model="password" type="password" class="field pr-12" placeholder="Enter your password">

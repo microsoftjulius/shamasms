@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Advert;
+use App\Models\PriceTier;
 use App\Models\SmsMessage;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -17,7 +19,18 @@ class Dashboard extends Component
     public string $period = 'day';
     public string $search = '';
     public ?string $priceUpdateMessage = null;
+    public ?string $adminMessage = null;
+    public ?string $tierMessage = null;
+    public ?string $advertMessage = null;
     public array $prices = [];
+    public array $tierInputs = [];
+    public string $adminUsername = '';
+    public string $tierName = '';
+    public int $tierMinAmount = 10000;
+    public int $tierUnitPrice = 35;
+    public string $advertTitle = '';
+    public string $advertBody = '';
+    public bool $advertActive = false;
 
     public function updatedSearch(): void
     {
@@ -37,6 +50,13 @@ class Dashboard extends Component
             ->pluck('sms_unit_price', 'id')
             ->map(fn ($price) => (int) ($price ?: 35))
             ->all();
+
+        $advert = Advert::query()->latest()->first();
+        if ($advert) {
+            $this->advertTitle = $advert->title;
+            $this->advertBody = $advert->body;
+            $this->advertActive = $advert->is_active;
+        }
     }
 
     public function updatePrice(int $userId): void
@@ -59,6 +79,97 @@ class Dashboard extends Component
 
         $this->priceUpdateMessage = "{$user->name}'s SMS price has been updated to UGX ".number_format($price)." per SMS.";
         session()->flash('status', 'User pricing updated.');
+    }
+
+    public function promoteAdmin(): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        $this->validate([
+            'adminUsername' => ['required', 'string', 'exists:users,username'],
+        ], [
+            'adminUsername.exists' => 'No user was found with that username.',
+        ]);
+
+        $user = User::query()->where('username', $this->adminUsername)->firstOrFail();
+        $user->update(['is_admin' => true]);
+
+        $this->adminUsername = '';
+        $this->adminMessage = "{$user->name} can now access the admin section.";
+    }
+
+    public function createTier(): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        $data = $this->validate([
+            'tierName' => ['required', 'string', 'max:80'],
+            'tierMinAmount' => ['required', 'integer', 'min:500'],
+            'tierUnitPrice' => ['required', 'integer', 'min:1', 'max:10000'],
+        ]);
+
+        $tier = PriceTier::query()->create([
+            'name' => $data['tierName'],
+            'min_amount' => $data['tierMinAmount'],
+            'sms_unit_price' => $data['tierUnitPrice'],
+            'is_active' => true,
+        ]);
+
+        $this->tierName = '';
+        $this->tierMinAmount = 10000;
+        $this->tierUnitPrice = 35;
+        $this->tierInputs[$tier->id] = [
+            'name' => $tier->name,
+            'min_amount' => $tier->min_amount,
+            'sms_unit_price' => $tier->sms_unit_price,
+            'is_active' => $tier->is_active,
+        ];
+        $this->tierMessage = 'Price tier created.';
+    }
+
+    public function updateTier(int $tierId): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        $this->validate([
+            "tierInputs.$tierId.name" => ['required', 'string', 'max:80'],
+            "tierInputs.$tierId.min_amount" => ['required', 'integer', 'min:500'],
+            "tierInputs.$tierId.sms_unit_price" => ['required', 'integer', 'min:1', 'max:10000'],
+            "tierInputs.$tierId.is_active" => ['boolean'],
+        ]);
+
+        $tier = PriceTier::query()->findOrFail($tierId);
+        $input = $this->tierInputs[$tierId];
+
+        $tier->update([
+            'name' => $input['name'],
+            'min_amount' => (int) $input['min_amount'],
+            'sms_unit_price' => (int) $input['sms_unit_price'],
+            'is_active' => (bool) ($input['is_active'] ?? false),
+        ]);
+
+        $this->tierMessage = 'Price tier updated.';
+    }
+
+    public function saveAdvert(): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        $data = $this->validate([
+            'advertTitle' => ['required', 'string', 'max:120'],
+            'advertBody' => ['required', 'string', 'max:1000'],
+            'advertActive' => ['boolean'],
+        ]);
+
+        Advert::query()->update(['is_active' => false]);
+
+        Advert::query()->create([
+            'title' => $data['advertTitle'],
+            'body' => $data['advertBody'],
+            'is_active' => $data['advertActive'],
+        ]);
+
+        $this->advertMessage = $data['advertActive'] ? 'Advert is now active for logged-in users.' : 'Advert saved as inactive.';
     }
 
     public function render()
@@ -84,6 +195,16 @@ class Dashboard extends Component
             $this->prices[$user->id] ??= (int) ($user->sms_unit_price ?: 35);
         }
 
+        $tiers = PriceTier::query()->orderBy('min_amount')->get();
+        foreach ($tiers as $tier) {
+            $this->tierInputs[$tier->id] ??= [
+                'name' => $tier->name,
+                'min_amount' => $tier->min_amount,
+                'sms_unit_price' => $tier->sms_unit_price,
+                'is_active' => $tier->is_active,
+            ];
+        }
+
         [$startsAt, $endsAt] = $this->periodRange();
 
         return view('livewire.admin.dashboard', [
@@ -93,6 +214,8 @@ class Dashboard extends Component
             'endsAt' => $endsAt,
             'totalUsers' => User::query()->count(),
             'totalBalance' => User::query()->sum('sms_balance'),
+            'adminCount' => User::query()->where('is_admin', true)->count(),
+            'tiers' => $tiers,
         ])->layout('layouts.app');
     }
 

@@ -41,6 +41,15 @@
     </nav>
 
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        @php
+            $activeAdvert = \App\Models\Advert::query()->where('is_active', true)->latest()->first();
+        @endphp
+        @if($activeAdvert)
+            <section class="mb-5 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 shadow-sm shadow-sky-100">
+                <p class="text-sm font-black text-sky-950">{{ $activeAdvert->title }}</p>
+                <p class="mt-1 whitespace-pre-wrap text-sm leading-6 text-sky-900">{{ $activeAdvert->body }}</p>
+            </section>
+        @endif
         @if(session('status'))
             <div class="mb-5 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-900">{{ session('status') }}</div>
         @endif

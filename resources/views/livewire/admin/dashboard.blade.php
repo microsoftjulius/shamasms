@@ -19,8 +19,8 @@
             <p class="mt-2 text-3xl font-black text-sky-700">{{ number_format($totalBalance) }}</p>
         </div>
         <div class="panel min-w-0">
-            <p class="text-xs font-black uppercase tracking-widest text-slate-500">Default public rate</p>
-            <p class="mt-2 text-3xl font-black text-slate-950">UGX 35</p>
+            <p class="text-xs font-black uppercase tracking-widest text-slate-500">Admins</p>
+            <p class="mt-2 text-3xl font-black text-slate-950">{{ number_format($adminCount) }}</p>
         </div>
         <div class="panel min-w-0">
             <p class="text-xs font-black uppercase tracking-widest text-slate-500">Selected period</p>
@@ -33,6 +33,79 @@
             {{ $priceUpdateMessage }}
         </div>
     @endif
+
+    <div class="grid gap-6 xl:grid-cols-3">
+        <form wire:submit="promoteAdmin" class="panel min-w-0">
+            <h2 class="text-xl font-black">Create admin</h2>
+            <p class="page-subtitle">Enter an existing username to give that user admin access.</p>
+            <label class="label mt-5 block">Username <span class="req">*</span>
+                <input wire:model="adminUsername" class="field" placeholder="e.g. martin">
+            </label>
+            @error('adminUsername')
+                <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+            @enderror
+            @if($adminMessage)
+                <p class="mt-2 text-sm font-black text-emerald-700">{{ $adminMessage }}</p>
+            @endif
+            <button class="mt-5 rounded-lg bg-sky-500 px-5 py-3 font-black text-white hover:bg-sky-600">Make admin</button>
+        </form>
+
+        <form wire:submit="createTier" class="panel min-w-0">
+            <h2 class="text-xl font-black">Add price tier</h2>
+            <p class="page-subtitle">When a user pays at least this amount, their SMS price changes to this tier.</p>
+            <div class="mt-5 grid gap-3">
+                <label class="label">Tier name <span class="req">*</span><input wire:model="tierName" class="field" placeholder="e.g. Starter"></label>
+                <label class="label">Minimum deposit UGX <span class="req">*</span><input wire:model="tierMinAmount" type="number" min="500" class="field"></label>
+                <label class="label">Price per SMS <span class="req">*</span><input wire:model="tierUnitPrice" type="number" min="1" class="field"></label>
+            </div>
+            @error('tierName')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
+            @error('tierMinAmount')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
+            @error('tierUnitPrice')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
+            @if($tierMessage)
+                <p class="mt-2 text-sm font-black text-emerald-700">{{ $tierMessage }}</p>
+            @endif
+            <button class="mt-5 rounded-lg bg-sky-500 px-5 py-3 font-black text-white hover:bg-sky-600">Add tier</button>
+        </form>
+
+        <form wire:submit="saveAdvert" class="panel min-w-0">
+            <h2 class="text-xl font-black">Advert</h2>
+            <p class="page-subtitle">Show a non-blocking notice to logged-in users until you stop it.</p>
+            <div class="mt-5 grid gap-3">
+                <label class="label">Title <span class="req">*</span><input wire:model="advertTitle" class="field" placeholder="e.g. Weekend offer"></label>
+                <label class="label">Message <span class="req">*</span><textarea wire:model="advertBody" class="field min-h-24" placeholder="Advert details"></textarea></label>
+                <label class="inline-flex items-center gap-2 text-sm font-bold text-slate-700"><input wire:model="advertActive" type="checkbox" class="rounded border-slate-300"> Active</label>
+            </div>
+            @error('advertTitle')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
+            @error('advertBody')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
+            @if($advertMessage)
+                <p class="mt-2 text-sm font-black text-emerald-700">{{ $advertMessage }}</p>
+            @endif
+            <button class="mt-5 rounded-lg bg-sky-500 px-5 py-3 font-black text-white hover:bg-sky-600">Save advert</button>
+        </form>
+    </div>
+
+    <div class="panel min-w-0">
+        <h2 class="text-xl font-black">Price tiers</h2>
+        <p class="page-subtitle">The highest active tier whose minimum deposit is met will be applied during purchase.</p>
+        <div class="mt-5 overflow-x-auto">
+            <table class="table">
+                <thead><tr><th>Name</th><th>Minimum deposit</th><th>Price per SMS</th><th>Active</th><th>Action</th></tr></thead>
+                <tbody>
+                    @forelse($tiers as $tier)
+                        <tr>
+                            <td><input wire:model="tierInputs.{{ $tier->id }}.name" class="field mt-0 min-w-40"></td>
+                            <td><input wire:model="tierInputs.{{ $tier->id }}.min_amount" type="number" min="500" class="field mt-0 w-36"></td>
+                            <td><input wire:model="tierInputs.{{ $tier->id }}.sms_unit_price" type="number" min="1" class="field mt-0 w-32"></td>
+                            <td><input wire:model="tierInputs.{{ $tier->id }}.is_active" type="checkbox" class="rounded border-slate-300"></td>
+                            <td><button wire:click="updateTier({{ $tier->id }})" type="button" class="rounded-lg bg-sky-500 px-3 py-2 text-xs font-black text-white hover:bg-sky-600">Save</button></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5">No price tiers yet.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <div class="grid gap-6 xl:grid-cols-[1fr_420px]">
         <div class="panel min-w-0">
