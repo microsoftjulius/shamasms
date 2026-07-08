@@ -142,6 +142,63 @@
         </div>
     </div>
 
+    <div class="panel min-w-0">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <h2 class="text-xl font-black">Payments</h2>
+                <p class="page-subtitle">Review credit purchases and manually resolve payments that did not callback.</p>
+            </div>
+            @if($paymentMessage)
+                <p class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-black text-emerald-800">{{ $paymentMessage }}</p>
+            @endif
+        </div>
+        <div class="mt-5 overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Credits</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Reference</th>
+                        <th>Message</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($payments as $payment)
+                        <tr>
+                            <td class="whitespace-nowrap">{{ $payment->created_at->format('d M Y H:i') }}</td>
+                            <td>
+                                <div class="font-black text-slate-900">{{ $payment->user?->name ?? 'Unknown user' }}</div>
+                                <div class="text-xs text-slate-500">{{ $payment->user?->username ?? '—' }}</div>
+                            </td>
+                            <td>{{ number_format($payment->amount) }}</td>
+                            <td>{{ number_format($payment->credits) }}</td>
+                            <td class="whitespace-nowrap">{{ $payment->phone ?: '—' }}</td>
+                            <td><span class="status-pill">{{ $payment->status }}</span></td>
+                            <td class="max-w-52 break-words text-xs">{{ $payment->provider_reference ?: data_get($payment->metadata, 'external_id', '—') }}</td>
+                            <td class="max-w-xs text-xs leading-5">{{ data_get($payment->metadata, 'message') ?: data_get($payment->metadata, 'callback.statusMessage') ?: data_get($payment->metadata, 'payload.message') ?: data_get($payment->metadata, 'payload.error') ?: '—' }}</td>
+                            <td>
+                                <div class="flex flex-wrap gap-2">
+                                    <button wire:click="markPaymentSuccessful({{ $payment->id }})" wire:confirm="Mark this payment successful and add credits if needed?" type="button" class="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-black text-white hover:bg-emerald-600">Success</button>
+                                    <button wire:click="markPaymentFailed({{ $payment->id }})" wire:confirm="Mark this payment failed and reverse credits if it was already credited?" type="button" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-black text-red-700 hover:bg-red-50">Failed</button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="9">No payments yet.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-5">
+            {{ $payments->links() }}
+        </div>
+    </div>
+
     <div class="grid gap-6 xl:grid-cols-[1fr_420px]">
         <div class="panel min-w-0">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

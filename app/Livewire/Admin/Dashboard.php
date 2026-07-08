@@ -5,7 +5,9 @@ namespace App\Livewire\Admin;
 use App\Models\Advert;
 use App\Models\PriceTier;
 use App\Models\SmsMessage;
+use App\Models\SmsCreditTransaction;
 use App\Models\User;
+use App\Services\SmsCreditTransactionStatusService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +24,7 @@ class Dashboard extends Component
     public ?string $adminMessage = null;
     public ?string $tierMessage = null;
     public ?string $advertMessage = null;
+    public ?string $paymentMessage = null;
     public array $prices = [];
     public array $tierInputs = [];
     public string $adminUsername = '';
@@ -238,6 +241,16 @@ class Dashboard extends Component
         $this->advertMessage = "\"{$title}\" has been deleted.";
     }
 
+    public function markPaymentSuccessful(int $transactionId, SmsCreditTransactionStatusService $statusService): void
+    {
+        $this->markPayment($transactionId, 'success', $statusService);
+    }
+
+    public function markPaymentFailed(int $transactionId, SmsCreditTransactionStatusService $statusService): void
+    {
+        $this->markPayment($transactionId, 'failed', $statusService);
+    }
+
     public function render()
     {
         abort_unless(Auth::user()?->is_admin, 403);
@@ -284,7 +297,29 @@ class Dashboard extends Component
             'adminCount' => User::query()->where('is_admin', true)->count(),
             'tiers' => $tiers,
             'adverts' => Advert::query()->latest()->limit(10)->get(),
+            'payments' => SmsCreditTransaction::query()
+                ->with('user:id,name,username,email,sms_balance')
+                ->latest()
+                ->paginate(10, pageName: 'paymentsPage'),
         ])->layout('layouts.app');
+    }
+
+    private function markPayment(int $transactionId, string $status, SmsCreditTransactionStatusService $statusService): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        $transaction = SmsCreditTransaction::query()->with('user')->findOrFail($transactionId);
+
+        $statusService->mark($transaction, $status, [
+            'admin_override' => [
+                'status' => $status,
+                'admin_id' => Auth::id(),
+                'admin_name' => Auth::user()?->name,
+                'updated_at' => now()->toIso8601String(),
+            ],
+        ]);
+
+        $this->paymentMessage = "Payment for {$transaction->user?->name} has been marked {$status}.";
     }
 
     private function periodRange(): array

@@ -51,5 +51,8 @@
                 </tbody>
             </table>
         </div>
+        <div class="mt-5">
+            {{ $transactions->links() }}
+        </div>
     </div>
 </section>

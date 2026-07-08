@@ -7,10 +7,14 @@ use App\Models\SmsCreditTransaction;
 use App\Services\IotecPaymentService;
 use App\Services\UgandaPhoneNumber;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class BuyCredits extends Component
 {
+    use WithPagination;
+
     public int $amount = 10000;
     public string $phone = '';
 
@@ -31,7 +35,8 @@ class BuyCredits extends Component
         $user = Auth::user();
         $tier = $this->matchingTier($data['amount']);
         $unitPrice = max(1, (int) ($tier?->sms_unit_price ?: $user->sms_unit_price ?: 35));
-        $result = $iotec->collect($data['amount'], $normalizedPhone['phone']);
+        $externalId = 'shamasms-'.Str::uuid();
+        $result = $iotec->collect($data['amount'], $normalizedPhone['phone'], $externalId);
         $credits = intdiv($data['amount'], $unitPrice);
 
         if ($tier && (int) $user->sms_unit_price !== $unitPrice) {
@@ -50,6 +55,7 @@ class BuyCredits extends Component
             'metadata' => [
                 ...$result,
                 'input_phone' => $data['phone'],
+                'external_id' => $externalId,
                 'unit_price' => $unitPrice,
                 'price_tier_id' => $tier?->id,
                 'price_tier_name' => $tier?->name,
@@ -64,7 +70,7 @@ class BuyCredits extends Component
     public function render()
     {
         return view('livewire.app.buy-credits', [
-            'transactions' => SmsCreditTransaction::query()->where('user_id', Auth::id())->latest()->limit(8)->get(),
+            'transactions' => SmsCreditTransaction::query()->where('user_id', Auth::id())->latest()->paginate(10),
             'unitPrice' => max(1, (int) (Auth::user()->sms_unit_price ?: 35)),
             'tiers' => PriceTier::query()->where('is_active', true)->orderBy('min_messages')->get(),
         ])->layout('layouts.app');

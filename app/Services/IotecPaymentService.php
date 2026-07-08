@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Http;
 
 class IotecPaymentService
 {
-    public function collect(int $amount, string $phone): array
+    public function collect(int $amount, string $phone, string $externalId): array
     {
         $setting = $this->setting();
 
@@ -45,7 +45,7 @@ class IotecPaymentService
             'currency' => data_get($setting->metadata, 'currency', 'UGX'),
             'payerNote' => 'SMS credit purchase',
             'payeeNote' => 'ShamaSMS credit purchase',
-            'externalId' => 'shamasms-'.str()->uuid(),
+            'externalId' => $externalId,
         ];
 
         $token = $this->accessToken($setting);
@@ -65,7 +65,10 @@ class IotecPaymentService
 
         return [
             'ok' => $response->successful(),
-            'reference' => $response->json('reference') ?? $response->json('transaction_id'),
+            'reference' => $response->json('id')
+                ?? $response->json('requestId')
+                ?? $response->json('reference')
+                ?? $response->json('transaction_id'),
             'status' => $response->successful() ? ($response->json('status') ?? 'pending') : 'failed',
             'message' => $response->json('message')
                 ?? $response->json('error')
@@ -76,6 +79,7 @@ class IotecPaymentService
                 'wallet_id' => $walletId,
                 'phone' => $phone,
                 'amount' => $amount,
+                'external_id' => $externalId,
             ],
         ];
     }

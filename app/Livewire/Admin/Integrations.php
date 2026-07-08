@@ -97,7 +97,7 @@ class Integrations extends Component
         }
 
         if ($setting->provider === 'iotec' && blank(data_get($setting->metadata, 'wallet_id'))) {
-            $this->testMessage = "{$setting->label} is missing the Iotec wallet ID. Delete it and save it again with Wallet ID, Client ID, and API Secret.";
+            $this->testMessage = "{$setting->label} is missing the Iotec wallet ID. Edit it and save it with Wallet ID, Client ID, and API Secret.";
             return;
         }
 
