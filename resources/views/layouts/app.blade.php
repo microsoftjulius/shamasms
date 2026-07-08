@@ -9,8 +9,8 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-950 antialiased" data-route-name="{{ request()->route()?->getName() }}">
     <nav class="sticky top-0 z-30 border-b border-sky-100 bg-white/95 backdrop-blur">
-        <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-3 py-3 sm:px-6 lg:px-8">
-            <div class="flex w-full items-center justify-between gap-2 sm:w-auto sm:flex-1 sm:justify-start">
+        <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-3 py-3 sm:flex-nowrap sm:px-6 lg:px-8">
+            <div class="flex w-full items-center justify-between gap-2 sm:w-auto sm:shrink-0 sm:justify-start">
                 <a href="{{ route('home') }}" class="flex min-w-0 items-center gap-2 font-black tracking-tight text-sky-700 sm:mr-4">
                     <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-sky-500 text-white sm:h-10 sm:w-10">S</span>
                     <span class="text-sm sm:text-base">ShamaSMS</span>

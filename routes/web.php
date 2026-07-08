@@ -61,7 +61,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('/buy', BuyCredits::class)->name('buy');
     Route::get('/me2u', Me2U::class)->name('me2u');
     Route::get('/settings', Settings::class)->name('settings');
-   
-    Route::get('/admin', Dashboard::class)->name('admin.dashboard');
-    Route::get('/admin/integrations', Integrations::class)->name('admin.integrations');
+
+    Route::middleware('admin')->group(function (): void {
+        Route::get('/admin', Dashboard::class)->name('admin.dashboard');
+        Route::get('/admin/integrations', Integrations::class)->name('admin.integrations');
+    });
 });

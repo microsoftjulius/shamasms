@@ -30,7 +30,7 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->phoneNumber(),
             'company' => fake()->company(),
-            'sms_balance' => 100,
+            'sms_balance' => 0,
             'sms_unit_price' => 35,
             'is_admin' => false,
             'email_verified_at' => now(),

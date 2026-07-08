@@ -26,7 +26,8 @@ class Dashboard extends Component
     public array $tierInputs = [];
     public string $adminUsername = '';
     public string $tierName = '';
-    public int $tierMinAmount = 10000;
+    public int $tierMinMessages = 1;
+    public ?int $tierMaxMessages = 1000;
     public int $tierUnitPrice = 35;
     public string $advertTitle = '';
     public string $advertBody = '';
@@ -104,23 +105,33 @@ class Dashboard extends Component
 
         $data = $this->validate([
             'tierName' => ['required', 'string', 'max:80'],
-            'tierMinAmount' => ['required', 'integer', 'min:500'],
+            'tierMinMessages' => ['required', 'integer', 'min:1'],
+            'tierMaxMessages' => ['nullable', 'integer', 'min:1'],
             'tierUnitPrice' => ['required', 'integer', 'min:1', 'max:10000'],
         ]);
 
+        if ($data['tierMaxMessages'] !== null && $data['tierMaxMessages'] < $data['tierMinMessages']) {
+            $this->addError('tierMaxMessages', 'The end of the range must be greater than or equal to the start.');
+            return;
+        }
+
         $tier = PriceTier::query()->create([
             'name' => $data['tierName'],
-            'min_amount' => $data['tierMinAmount'],
+            'min_amount' => $data['tierMinMessages'],
+            'min_messages' => $data['tierMinMessages'],
+            'max_messages' => $data['tierMaxMessages'],
             'sms_unit_price' => $data['tierUnitPrice'],
             'is_active' => true,
         ]);
 
         $this->tierName = '';
-        $this->tierMinAmount = 10000;
+        $this->tierMinMessages = 1;
+        $this->tierMaxMessages = 1000;
         $this->tierUnitPrice = 35;
         $this->tierInputs[$tier->id] = [
             'name' => $tier->name,
-            'min_amount' => $tier->min_amount,
+            'min_messages' => $tier->min_messages,
+            'max_messages' => $tier->max_messages,
             'sms_unit_price' => $tier->sms_unit_price,
             'is_active' => $tier->is_active,
         ];
@@ -133,17 +144,29 @@ class Dashboard extends Component
 
         $this->validate([
             "tierInputs.$tierId.name" => ['required', 'string', 'max:80'],
-            "tierInputs.$tierId.min_amount" => ['required', 'integer', 'min:500'],
+            "tierInputs.$tierId.min_messages" => ['required', 'integer', 'min:1'],
+            "tierInputs.$tierId.max_messages" => ['nullable', 'integer', 'min:1'],
             "tierInputs.$tierId.sms_unit_price" => ['required', 'integer', 'min:1', 'max:10000'],
             "tierInputs.$tierId.is_active" => ['boolean'],
         ]);
 
         $tier = PriceTier::query()->findOrFail($tierId);
         $input = $this->tierInputs[$tierId];
+        $minMessages = (int) $input['min_messages'];
+        $maxMessages = $input['max_messages'] === '' || $input['max_messages'] === null
+            ? null
+            : (int) $input['max_messages'];
+
+        if ($maxMessages !== null && $maxMessages < $minMessages) {
+            $this->addError("tierInputs.$tierId.max_messages", 'The end of the range must be greater than or equal to the start.');
+            return;
+        }
 
         $tier->update([
             'name' => $input['name'],
-            'min_amount' => (int) $input['min_amount'],
+            'min_amount' => $minMessages,
+            'min_messages' => $minMessages,
+            'max_messages' => $maxMessages,
             'sms_unit_price' => (int) $input['sms_unit_price'],
             'is_active' => (bool) ($input['is_active'] ?? false),
         ]);
@@ -172,6 +195,49 @@ class Dashboard extends Component
         $this->advertMessage = $data['advertActive'] ? 'Advert is now active for logged-in users.' : 'Advert saved as inactive.';
     }
 
+    public function activateAdvert(int $advertId): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        $advert = Advert::query()->findOrFail($advertId);
+
+        Advert::query()->update(['is_active' => false]);
+        $advert->update(['is_active' => true]);
+
+        $this->advertTitle = $advert->title;
+        $this->advertBody = $advert->body;
+        $this->advertActive = true;
+        $this->advertMessage = "\"{$advert->title}\" is now active for logged-in users.";
+    }
+
+    public function stopAdvert(int $advertId): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        $advert = Advert::query()->findOrFail($advertId);
+        $advert->update(['is_active' => false]);
+
+        $this->advertActive = false;
+        $this->advertMessage = "\"{$advert->title}\" has been stopped.";
+    }
+
+    public function deleteAdvert(int $advertId): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        $advert = Advert::query()->findOrFail($advertId);
+        $title = $advert->title;
+        $wasActive = $advert->is_active;
+
+        $advert->delete();
+
+        if ($wasActive) {
+            $this->advertActive = false;
+        }
+
+        $this->advertMessage = "\"{$title}\" has been deleted.";
+    }
+
     public function render()
     {
         abort_unless(Auth::user()?->is_admin, 403);
@@ -195,11 +261,12 @@ class Dashboard extends Component
             $this->prices[$user->id] ??= (int) ($user->sms_unit_price ?: 35);
         }
 
-        $tiers = PriceTier::query()->orderBy('min_amount')->get();
+        $tiers = PriceTier::query()->orderBy('min_messages')->get();
         foreach ($tiers as $tier) {
             $this->tierInputs[$tier->id] ??= [
                 'name' => $tier->name,
-                'min_amount' => $tier->min_amount,
+                'min_messages' => $tier->min_messages ?: $tier->min_amount,
+                'max_messages' => $tier->max_messages,
                 'sms_unit_price' => $tier->sms_unit_price,
                 'is_active' => $tier->is_active,
             ];
@@ -216,6 +283,7 @@ class Dashboard extends Component
             'totalBalance' => User::query()->sum('sms_balance'),
             'adminCount' => User::query()->where('is_admin', true)->count(),
             'tiers' => $tiers,
+            'adverts' => Advert::query()->latest()->limit(10)->get(),
         ])->layout('layouts.app');
     }
 

@@ -6,9 +6,9 @@
         </a>
         <h1 class="text-4xl font-black tracking-normal text-white">Welcome back.</h1>
         <p class="mt-4 max-w-xl text-lg leading-8 text-white">Your SMS balance is visible across the app, and Compose SMS is always the first working screen after login.</p>
-        <div class="mt-8 max-w-xl rounded-lg border border-sky-200 bg-white/80 p-5 shadow-sm shadow-sky-100">
-            <p class="text-sm font-black text-slate-950">Fast workflow</p>
-            <p class="mt-2 text-sm leading-6 text-slate-700">Login, choose recipients, set the sender ID, send now or schedule later. No sidebar, no clutter.</p>
+        <div class="mt-8 max-w-xl rounded-lg border border-white/20 bg-white/10 p-5">
+            <p class="text-sm font-black text-white">Fast workflow</p>
+            <p class="mt-2 text-sm leading-6 text-white/80">Login, choose recipients, set the sender ID, send now or schedule later. No sidebar, no clutter.</p>
         </div>
     </div>
     <form wire:submit="login" class="auth-card">

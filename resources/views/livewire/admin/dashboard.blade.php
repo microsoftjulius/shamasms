@@ -52,14 +52,16 @@
 
         <form wire:submit="createTier" class="panel min-w-0">
             <h2 class="text-xl font-black">Add price tier</h2>
-            <p class="page-subtitle">When a user pays at least this amount, their SMS price changes to this tier.</p>
+            <p class="page-subtitle">Set the SMS price for a message quantity range, for example 1 to 1000 or 1001 to 2000.</p>
             <div class="mt-5 grid gap-3">
                 <label class="label">Tier name <span class="req">*</span><input wire:model="tierName" class="field" placeholder="e.g. Starter"></label>
-                <label class="label">Minimum deposit UGX <span class="req">*</span><input wire:model="tierMinAmount" type="number" min="500" class="field"></label>
+                <label class="label">From messages <span class="req">*</span><input wire:model="tierMinMessages" type="number" min="1" class="field" placeholder="1"></label>
+                <label class="label">To messages <input wire:model="tierMaxMessages" type="number" min="1" class="field" placeholder="1000"></label>
                 <label class="label">Price per SMS <span class="req">*</span><input wire:model="tierUnitPrice" type="number" min="1" class="field"></label>
             </div>
             @error('tierName')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
-            @error('tierMinAmount')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
+            @error('tierMinMessages')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
+            @error('tierMaxMessages')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
             @error('tierUnitPrice')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
             @if($tierMessage)
                 <p class="mt-2 text-sm font-black text-emerald-700">{{ $tierMessage }}</p>
@@ -85,22 +87,55 @@
     </div>
 
     <div class="panel min-w-0">
-        <h2 class="text-xl font-black">Price tiers</h2>
-        <p class="page-subtitle">The highest active tier whose minimum deposit is met will be applied during purchase.</p>
+        <h2 class="text-xl font-black">Saved adverts</h2>
+        <p class="page-subtitle">Review saved adverts and choose which one should be shown to logged-in users.</p>
         <div class="mt-5 overflow-x-auto">
             <table class="table">
-                <thead><tr><th>Name</th><th>Minimum deposit</th><th>Price per SMS</th><th>Active</th><th>Action</th></tr></thead>
+                <thead><tr><th>Advert</th><th>Status</th><th>Created</th><th>Action</th></tr></thead>
+                <tbody>
+                    @forelse($adverts as $advert)
+                        <tr>
+                            <td>
+                                <div class="font-black text-slate-900">{{ $advert->title }}</div>
+                                <div class="mt-1 max-w-2xl whitespace-pre-wrap text-xs leading-5 text-slate-500">{{ $advert->body }}</div>
+                            </td>
+                            <td><span class="status-pill">{{ $advert->is_active ? 'active' : 'inactive' }}</span></td>
+                            <td>{{ $advert->created_at->format('d M Y H:i') }}</td>
+                            <td class="space-x-2 whitespace-nowrap">
+                                @if($advert->is_active)
+                                    <button wire:click="stopAdvert({{ $advert->id }})" type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">Stop</button>
+                                @else
+                                    <button wire:click="activateAdvert({{ $advert->id }})" type="button" class="rounded-lg bg-sky-500 px-3 py-2 text-xs font-black text-white hover:bg-sky-600">Activate</button>
+                                @endif
+                                <button wire:click="deleteAdvert({{ $advert->id }})" wire:confirm="Delete this advert?" type="button" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-black text-red-700 hover:bg-red-50">Delete</button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4">No adverts yet.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel min-w-0">
+        <h2 class="text-xl font-black">Price tiers</h2>
+        <p class="page-subtitle">The tier whose message range matches the purchased credits will set the user's SMS price.</p>
+        <div class="mt-5 overflow-x-auto">
+            <table class="table">
+                <thead><tr><th>Name</th><th>From messages</th><th>To messages</th><th>Price per SMS</th><th>Active</th><th>Action</th></tr></thead>
                 <tbody>
                     @forelse($tiers as $tier)
                         <tr>
                             <td><input wire:model="tierInputs.{{ $tier->id }}.name" class="field mt-0 min-w-40"></td>
-                            <td><input wire:model="tierInputs.{{ $tier->id }}.min_amount" type="number" min="500" class="field mt-0 w-36"></td>
+                            <td><input wire:model="tierInputs.{{ $tier->id }}.min_messages" type="number" min="1" class="field mt-0 w-32"></td>
+                            <td><input wire:model="tierInputs.{{ $tier->id }}.max_messages" type="number" min="1" class="field mt-0 w-32" placeholder="No limit"></td>
                             <td><input wire:model="tierInputs.{{ $tier->id }}.sms_unit_price" type="number" min="1" class="field mt-0 w-32"></td>
                             <td><input wire:model="tierInputs.{{ $tier->id }}.is_active" type="checkbox" class="rounded border-slate-300"></td>
                             <td><button wire:click="updateTier({{ $tier->id }})" type="button" class="rounded-lg bg-sky-500 px-3 py-2 text-xs font-black text-white hover:bg-sky-600">Save</button></td>
                         </tr>
                     @empty
-                        <tr><td colspan="5">No price tiers yet.</td></tr>
+                        <tr><td colspan="6">No price tiers yet.</td></tr>
                     @endforelse
                 </tbody>
             </table>

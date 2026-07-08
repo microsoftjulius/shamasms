@@ -15,7 +15,10 @@
                 <div class="mt-3 grid gap-2 text-sm text-slate-700">
                     @foreach($tiers as $tier)
                         <div class="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2">
-                            <span class="font-bold">{{ $tier->name }} from UGX {{ number_format($tier->min_amount) }}</span>
+                            <span class="font-bold">
+                                {{ $tier->name }}
+                                {{ number_format($tier->min_messages ?: $tier->min_amount) }}@if($tier->max_messages)-{{ number_format($tier->max_messages) }}@else+@endif SMS
+                            </span>
                             <span class="font-black text-sky-800">UGX {{ number_format($tier->sms_unit_price) }}/SMS</span>
                         </div>
                     @endforeach
@@ -31,12 +34,19 @@
         <h2 class="text-xl font-black">Recent purchases</h2>
         <div class="mt-5 overflow-x-auto">
             <table class="table">
-                <thead><tr><th>Amount</th><th>Credits</th><th>Status</th><th>Reference</th></tr></thead>
+                <thead><tr><th>Amount</th><th>Credits</th><th>Phone</th><th>Status</th><th>Reference</th><th>Message</th></tr></thead>
                 <tbody>
                     @forelse($transactions as $transaction)
-                        <tr><td>{{ number_format($transaction->amount) }}</td><td>{{ number_format($transaction->credits) }}</td><td><span class="status-pill">{{ $transaction->status }}</span></td><td>{{ $transaction->provider_reference }}</td></tr>
+                        <tr>
+                            <td>{{ number_format($transaction->amount) }}</td>
+                            <td>{{ number_format($transaction->credits) }}</td>
+                            <td>{{ $transaction->phone ?: '—' }}</td>
+                            <td><span class="status-pill">{{ $transaction->status }}</span></td>
+                            <td>{{ $transaction->provider_reference ?: '—' }}</td>
+                            <td class="max-w-xs text-xs leading-5">{{ data_get($transaction->metadata, 'message') ?: data_get($transaction->metadata, 'payload.message') ?: data_get($transaction->metadata, 'payload.error') ?: '—' }}</td>
+                        </tr>
                     @empty
-                        <tr><td colspan="4">No purchases yet.</td></tr>
+                        <tr><td colspan="6">No purchases yet.</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -26,7 +26,10 @@ class Register extends Component
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user = User::query()->create($data);
+        $user = User::query()->create([
+            ...$data,
+            'sms_balance' => 0,
+        ]);
 
         event(new Registered($user));
         Auth::login($user);

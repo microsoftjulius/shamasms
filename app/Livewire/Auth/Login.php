@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Auth;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 
 class Login extends Component
@@ -18,14 +20,17 @@ class Login extends Component
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt([
-            'username' => $data['username'],
-            'password' => $data['password'],
-        ], $this->remember)) {
+        $username = trim($data['username']);
+        $user = User::query()
+            ->whereRaw('LOWER(username) = ?', [mb_strtolower($username)])
+            ->first();
+
+        if (! $user || ! Hash::check($data['password'], $user->password)) {
             $this->addError('username', 'These details do not match a ShamaSMS account.');
             return;
         }
 
+        Auth::login($user, $this->remember);
         request()->session()->regenerate();
         $this->redirectRoute('compose', navigate: true);
     }

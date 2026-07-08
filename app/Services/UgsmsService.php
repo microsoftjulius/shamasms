@@ -22,7 +22,7 @@ class UgsmsService
         $response = Http::timeout(20)
             ->acceptJson()
             ->withHeaders(['X-API-Key' => (string) $setting['api_key']])
-            ->post(rtrim((string) $setting['base_url'], '/').'/sms/send', array_filter([
+            ->post($this->baseUrl($setting['base_url']).'/sms/send', array_filter([
                 'sender_id' => $senderId,
                 'numbers' => $phone,
                 'message_body' => $message,
@@ -49,7 +49,7 @@ class UgsmsService
         $response = Http::timeout(20)
             ->acceptJson()
             ->withHeaders(['X-API-Key' => (string) $setting['api_key']])
-            ->get(rtrim((string) $setting['base_url'], '/').'/account/balance');
+            ->get($this->baseUrl($setting['base_url']).'/account/balance');
 
         return [
             'ok' => $response->successful(),
@@ -84,5 +84,18 @@ class UgsmsService
             'api_key' => config('services.ugsms.api_key'),
             'is_sandbox' => (bool) config('services.ugsms.sandbox'),
         ];
+    }
+
+    private function baseUrl(string $baseUrl): string
+    {
+        $baseUrl = rtrim($baseUrl, '/');
+
+        foreach (['/sms/send', '/account/balance'] as $endpoint) {
+            if (str_ends_with($baseUrl, $endpoint)) {
+                return substr($baseUrl, 0, -strlen($endpoint));
+            }
+        }
+
+        return $baseUrl;
     }
 }

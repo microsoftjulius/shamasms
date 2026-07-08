@@ -29,11 +29,7 @@ class BuyCredits extends Component
         }
 
         $user = Auth::user();
-        $tier = PriceTier::query()
-            ->where('is_active', true)
-            ->where('min_amount', '<=', $data['amount'])
-            ->orderByDesc('min_amount')
-            ->first();
+        $tier = $this->matchingTier($data['amount']);
         $unitPrice = max(1, (int) ($tier?->sms_unit_price ?: $user->sms_unit_price ?: 35));
         $result = $iotec->collect($data['amount'], $normalizedPhone['phone']);
         $credits = intdiv($data['amount'], $unitPrice);
@@ -60,11 +56,9 @@ class BuyCredits extends Component
             ],
         ]);
 
-        if (($result['sandbox'] ?? false) === true) {
-            $user->increment('sms_balance', $credits);
-        }
-
-        session()->flash('status', 'Payment request sent. Sandbox payments credit instantly.');
+        session()->flash('status', ($result['ok'] ?? false)
+            ? 'Payment request sent. Your credits will update after payment confirmation.'
+            : 'Payment request failed. Check the recent purchases table for the provider message.');
     }
 
     public function render()
@@ -72,7 +66,29 @@ class BuyCredits extends Component
         return view('livewire.app.buy-credits', [
             'transactions' => SmsCreditTransaction::query()->where('user_id', Auth::id())->latest()->limit(8)->get(),
             'unitPrice' => max(1, (int) (Auth::user()->sms_unit_price ?: 35)),
-            'tiers' => PriceTier::query()->where('is_active', true)->orderBy('min_amount')->get(),
+            'tiers' => PriceTier::query()->where('is_active', true)->orderBy('min_messages')->get(),
         ])->layout('layouts.app');
+    }
+
+    private function matchingTier(int $amount): ?PriceTier
+    {
+        $fallback = null;
+
+        foreach (PriceTier::query()->where('is_active', true)->orderByDesc('min_messages')->get() as $tier) {
+            $unitPrice = max(1, (int) $tier->sms_unit_price);
+            $credits = intdiv($amount, $unitPrice);
+            $minMessages = (int) ($tier->min_messages ?: $tier->min_amount ?: 1);
+            $maxMessages = $tier->max_messages ? (int) $tier->max_messages : null;
+
+            if ($credits >= $minMessages && ($maxMessages === null || $credits <= $maxMessages)) {
+                return $tier;
+            }
+
+            if ($credits >= $minMessages && $fallback === null) {
+                $fallback = $tier;
+            }
+        }
+
+        return $fallback;
     }
 }
