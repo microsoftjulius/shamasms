@@ -28,6 +28,8 @@ class ComposeSms extends Component
     public array $schedule_weekdays = [];
     public string $schedule_time = '09:00';
     public array $invalid_recipients = [];
+    public ?string $sendNotice = null;
+    public string $sendNoticeType = 'success';
 
     public array $weekdays = [
         'monday' => 'Monday',
@@ -38,6 +40,11 @@ class ComposeSms extends Component
         'saturday' => 'Saturday',
         'sunday' => 'Sunday',
     ];
+
+    public function clearSendNotice(): void
+    {
+        $this->sendNotice = null;
+    }
 
     public function send(MessagePersonalizer $personalizer, UgsmsService $ugsms): void
     {
@@ -123,9 +130,11 @@ class ComposeSms extends Component
         }
 
         $this->reset(['typed_recipients', 'recipient_file', 'body']);
-        session()->flash('status', $this->send_when === 'now'
-            ? ($failedCount > 0 ? "{$sentCount} sent, {$failedCount} failed." : 'Message sent successfully.')
-            : 'Message scheduled.');
+        [$notice, $noticeType] = $this->sendNoticeMessage($sentCount, $failedCount, $segments, count($recipients));
+        $this->sendNotice = $notice;
+        $this->sendNoticeType = $noticeType;
+
+        session()->flash('status', $notice);
     }
 
     public function render()
@@ -188,5 +197,24 @@ class ComposeSms extends Component
             ->unique('phone')
             ->values()
             ->all();
+    }
+
+    private function sendNoticeMessage(int $sentCount, int $failedCount, int $segments, int $recipientCount): array
+    {
+        if ($this->send_when === 'later') {
+            return ["Message scheduled for {$recipientCount} recipient".($recipientCount === 1 ? '' : 's').'.', 'success'];
+        }
+
+        $charged = $segments * $sentCount;
+
+        if ($sentCount === 0) {
+            return ["Message failed. No recipients were charged. {$failedCount} failed.", 'error'];
+        }
+
+        if ($failedCount > 0) {
+            return ["Message partially sent: {$sentCount} sent, {$failedCount} failed. {$charged} credit".($charged === 1 ? '' : 's')." charged.", 'warning'];
+        }
+
+        return ["Message sent successfully to {$sentCount} recipient".($sentCount === 1 ? '' : 's').". {$charged} credit".($charged === 1 ? '' : 's')." charged.", 'success'];
     }
 }

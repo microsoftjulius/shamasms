@@ -39,6 +39,7 @@ return [
         'base_url' => env('UGSMS_BASE_URL', 'https://ugsms.com/api/v2'),
         'api_key' => env('UGSMS_API_KEY'),
         'sandbox' => env('UGSMS_SANDBOX', false),
+        'unit_price' => env('UGSMS_UNIT_PRICE', 35),
     ],
 
     'sendcrane' => [

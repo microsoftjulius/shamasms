@@ -3,6 +3,9 @@
 namespace App\Livewire\Admin;
 
 use App\Models\IntegrationSetting;
+use App\Models\SmsCreditTransaction;
+use App\Services\UgsmsService;
+use App\Services\UgandaPhoneNumber;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Livewire\Component;
@@ -18,8 +21,12 @@ class Integrations extends Component
     public string $wallet_id = '';
     public string $username = '';
     public string $password = '';
+    public int $ugsms_unit_price = 35;
+    public int $ugsms_deposit_amount = 5000;
+    public string $ugsms_deposit_phone = '';
     public bool $is_sandbox = true;
     public ?string $testMessage = null;
+    public ?string $ugsmsDepositMessage = null;
     public ?int $testingId = null;
 
     public function save(): void
@@ -35,6 +42,7 @@ class Integrations extends Component
             'wallet_id' => ['nullable', 'string', 'max:160'],
             'username' => ['nullable', 'string', 'max:160'],
             'password' => ['nullable', 'string'],
+            'ugsms_unit_price' => ['required', 'integer', 'min:1', 'max:10000'],
             'is_sandbox' => ['boolean'],
         ]);
 
@@ -43,11 +51,16 @@ class Integrations extends Component
             $data['metadata'] = [
                 'wallet_id' => $data['wallet_id'] ?? null,
             ];
+        } elseif (in_array($data['provider'], ['sms_gateway', 'ugsms'], true)) {
+            $data['metadata'] = [
+                ...(IntegrationSetting::query()->find($this->editingId)?->metadata ?? []),
+                'unit_price' => $data['ugsms_unit_price'],
+            ];
         } elseif ($this->editingId) {
             $data['metadata'] = IntegrationSetting::query()->find($this->editingId)?->metadata;
         }
 
-        unset($data['wallet_id']);
+        unset($data['wallet_id'], $data['ugsms_unit_price']);
 
         if ($this->editingId) {
             IntegrationSetting::query()->findOrFail($this->editingId)->update($data);
@@ -73,6 +86,7 @@ class Integrations extends Component
         $this->api_key = (string) $setting->api_key;
         $this->api_secret = (string) $setting->api_secret;
         $this->wallet_id = (string) data_get($setting->metadata, 'wallet_id', '');
+        $this->ugsms_unit_price = max(1, (int) data_get($setting->metadata, 'unit_price', 35));
         $this->username = (string) $setting->username;
         $this->password = (string) $setting->password;
         $this->is_sandbox = $setting->is_sandbox;
@@ -140,11 +154,63 @@ class Integrations extends Component
         $this->testMessage = "{$label} has been deleted.";
     }
 
+    public function depositToUgsms(UgsmsService $ugsms, UgandaPhoneNumber $phoneNumber): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        $data = $this->validate([
+            'ugsms_deposit_amount' => ['required', 'integer', 'min:5000'],
+            'ugsms_deposit_phone' => ['required', 'string', 'max:30'],
+        ]);
+
+        $normalizedPhone = $phoneNumber->normalize($data['ugsms_deposit_phone']);
+
+        if (! $normalizedPhone) {
+            $this->addError('ugsms_deposit_phone', 'Enter a valid Ugandan mobile money number, for example 0700000000.');
+            return;
+        }
+
+        $phone = '0'.substr($normalizedPhone['phone'], 3);
+        $unitPrice = max(1, (int) data_get(IntegrationSetting::query()
+            ->whereIn('provider', ['sms_gateway', 'ugsms'])
+            ->where('is_active', true)
+            ->latest()
+            ->first()?->metadata, 'unit_price', 35));
+        $result = $ugsms->requestDeposit(
+            $data['ugsms_deposit_amount'],
+            $phone,
+            url('/api/ugsms/payment-callback'),
+        );
+
+        SmsCreditTransaction::query()->create([
+            'user_id' => Auth::id(),
+            'type' => 'ugsms_deposit',
+            'amount' => $data['ugsms_deposit_amount'],
+            'credits' => intdiv($data['ugsms_deposit_amount'], $unitPrice),
+            'phone' => $phone,
+            'provider' => 'ugsms',
+            'provider_reference' => $result['reference'] ?? null,
+            'status' => $result['ok'] ? ($result['status'] ?? 'pending') : 'failed',
+            'metadata' => [
+                ...$result,
+                'admin_id' => Auth::id(),
+                'admin_name' => Auth::user()?->name,
+                'input_phone' => $data['ugsms_deposit_phone'],
+                'callback_url' => url('/api/ugsms/payment-callback'),
+            ],
+        ]);
+
+        $this->ugsmsDepositMessage = ($result['ok'] ?? false)
+            ? 'UGSMS deposit request sent. Check the phone for the mobile money prompt.'
+            : 'UGSMS deposit request failed: '.($result['message'] ?? 'Provider rejected the request.');
+    }
+
     private function resetForm(): void
     {
         $this->editingId = null;
         $this->provider = 'sms_gateway';
         $this->reset(['label', 'base_url', 'api_key', 'api_secret', 'wallet_id', 'username', 'password']);
+        $this->ugsms_unit_price = 35;
         $this->is_sandbox = true;
     }
 
@@ -216,8 +282,30 @@ class Integrations extends Component
     {
         abort_unless(Auth::user()?->is_admin, 403);
 
+        $ugsmsBalance = null;
+        try {
+            $ugsmsBalance = app(UgsmsService::class)->balance();
+        } catch (\Throwable $exception) {
+            $ugsmsBalance = [
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ];
+        }
+
         return view('livewire.admin.integrations', [
             'settings' => IntegrationSetting::query()->latest()->get(),
+            'ugsmsBalance' => $ugsmsBalance,
+            'activeUgsmsSetting' => IntegrationSetting::query()
+                ->whereIn('provider', ['sms_gateway', 'ugsms'])
+                ->where('is_active', true)
+                ->latest()
+                ->first(),
+            'ugsmsDeposits' => SmsCreditTransaction::query()
+                ->where('type', 'ugsms_deposit')
+                ->where('provider', 'ugsms')
+                ->latest()
+                ->limit(10)
+                ->get(),
         ])->layout('layouts.app');
     }
 }

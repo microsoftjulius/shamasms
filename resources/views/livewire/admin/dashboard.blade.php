@@ -107,7 +107,7 @@
                                 @else
                                     <button wire:click="activateAdvert({{ $advert->id }})" type="button" class="rounded-lg bg-sky-500 px-3 py-2 text-xs font-black text-white hover:bg-sky-600">Activate</button>
                                 @endif
-                                <button wire:click="deleteAdvert({{ $advert->id }})" wire:confirm="Delete this advert?" type="button" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-black text-red-700 hover:bg-red-50">Delete</button>
+                                <button wire:click="deleteAdvert({{ $advert->id }})" data-swal-confirm="Delete this advert?" data-swal-title="Delete advert?" data-swal-icon="warning" data-swal-confirm-text="Delete" data-swal-confirm-color="#dc2626" type="button" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-black text-red-700 hover:bg-red-50">Delete</button>
                             </td>
                         </tr>
                     @empty
@@ -183,8 +183,8 @@
                             <td class="max-w-xs text-xs leading-5">{{ data_get($payment->metadata, 'message') ?: data_get($payment->metadata, 'callback.statusMessage') ?: data_get($payment->metadata, 'payload.message') ?: data_get($payment->metadata, 'payload.error') ?: '—' }}</td>
                             <td>
                                 <div class="flex flex-wrap gap-2">
-                                    <button wire:click="markPaymentSuccessful({{ $payment->id }})" wire:confirm="Mark this payment successful and add credits if needed?" type="button" class="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-black text-white hover:bg-emerald-600">Success</button>
-                                    <button wire:click="markPaymentFailed({{ $payment->id }})" wire:confirm="Mark this payment failed and reverse credits if it was already credited?" type="button" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-black text-red-700 hover:bg-red-50">Failed</button>
+                                    <button wire:click="markPaymentSuccessful({{ $payment->id }})" data-swal-confirm="Mark this payment successful and add credits if needed?" data-swal-title="Approve payment?" data-swal-icon="success" data-swal-confirm-text="Mark successful" data-swal-confirm-color="#10b981" type="button" class="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-black text-white hover:bg-emerald-600">Success</button>
+                                    <button wire:click="markPaymentFailed({{ $payment->id }})" data-swal-confirm="Mark this payment failed and reverse credits if it was already credited?" data-swal-title="Fail payment?" data-swal-icon="warning" data-swal-confirm-text="Mark failed" data-swal-confirm-color="#dc2626" type="button" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-black text-red-700 hover:bg-red-50">Failed</button>
                                 </div>
                             </td>
                         </tr>

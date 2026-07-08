@@ -6,7 +6,7 @@
             Your rate is UGX {{ number_format($unitPrice) }} per SMS credit.
         </div>
         <div class="mt-6 grid gap-4">
-            <label class="label">Amount UGX <span class="req">*</span><input wire:model="amount" type="number" min="500" class="field"></label>
+            <label class="label">Amount UGX <span class="req">*</span><input wire:model="amount" type="number" min="5000" class="field"></label>
             <label class="label">Mobile money number <span class="req">*</span><input wire:model="phone" class="field" placeholder="0700000000"></label>
         </div>
         @if($tiers->isNotEmpty())

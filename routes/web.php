@@ -2,6 +2,7 @@
 
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Integrations;
+use App\Livewire\Admin\Payments;
 use App\Livewire\App\BuyCredits;
 use App\Livewire\App\ComposeSms;
 use App\Livewire\App\Me2U;
@@ -65,5 +66,6 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::middleware('admin')->group(function (): void {
         Route::get('/admin', Dashboard::class)->name('admin.dashboard');
         Route::get('/admin/integrations', Integrations::class)->name('admin.integrations');
+        Route::get('/admin/payments', Payments::class)->name('admin.payments');
     });
 });

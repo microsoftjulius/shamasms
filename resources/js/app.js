@@ -289,3 +289,87 @@ function initTour() {
 }
 
 document.addEventListener('DOMContentLoaded', initTour);
+
+function parseLivewireCall(expression) {
+    const match = expression.match(/^([A-Za-z_$][\w$]*)\((.*)\)$/);
+
+    if (!match) {
+        return { method: expression, args: [] };
+    }
+
+    const [, method, rawArgs] = match;
+
+    if (rawArgs.trim() === '') {
+        return { method, args: [] };
+    }
+
+    return {
+        method,
+        args: rawArgs.split(',').map((arg) => {
+            const value = arg.trim();
+
+            if (/^\d+$/.test(value)) {
+                return Number(value);
+            }
+
+            return value.replace(/^['"]|['"]$/g, '');
+        }),
+    };
+}
+
+function initSwalConfirms() {
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-swal-confirm]');
+
+        if (!button) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        const componentRoot = button.closest('[wire\\:id]');
+        const wireClick = button.getAttribute('wire:click');
+
+        if (!componentRoot || !wireClick || !window.Livewire) {
+            return;
+        }
+
+        const runAction = () => {
+            const { method, args } = parseLivewireCall(wireClick);
+            window.Livewire.find(componentRoot.getAttribute('wire:id')).call(method, ...args);
+        };
+
+        const message = button.dataset.swalConfirm;
+        const title = button.dataset.swalTitle || 'Are you sure?';
+        const icon = button.dataset.swalIcon || 'question';
+        const confirmButtonText = button.dataset.swalConfirmText || 'Yes, continue';
+        const confirmButtonColor = button.dataset.swalConfirmColor || '#0ea5e9';
+
+        if (!window.Swal) {
+            if (window.confirm(message)) {
+                runAction();
+            }
+
+            return;
+        }
+
+        window.Swal.fire({
+            title,
+            text: message,
+            icon,
+            showCancelButton: true,
+            confirmButtonText,
+            cancelButtonText: 'Cancel',
+            confirmButtonColor,
+            cancelButtonColor: '#64748b',
+            reverseButtons: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                runAction();
+            }
+        });
+    }, true);
+}
+
+document.addEventListener('DOMContentLoaded', initSwalConfirms);

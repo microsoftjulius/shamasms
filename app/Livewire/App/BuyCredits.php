@@ -21,7 +21,7 @@ class BuyCredits extends Component
     public function buy(IotecPaymentService $iotec, UgandaPhoneNumber $phoneNumber): void
     {
         $data = $this->validate([
-            'amount' => ['required', 'integer', 'min:500'],
+            'amount' => ['required', 'integer', 'min:5000'],
             'phone' => ['required', 'string', 'max:30'],
         ]);
 

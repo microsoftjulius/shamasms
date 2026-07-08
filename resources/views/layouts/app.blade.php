@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'ShamaSMS') }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
@@ -34,7 +35,8 @@
                 <a data-tour="nav-developers" class="nav-link @if(request()->routeIs('developers')) active @endif" href="{{ route('developers') }}">API Docs</a>
                 <a data-tour="nav-settings" class="nav-link @if(request()->routeIs('settings')) active @endif" href="{{ route('settings') }}">Settings</a>
                 @if(auth()->user()->is_admin)
-                    <a class="nav-link @if(request()->routeIs('admin.*')) active @endif" href="{{ route('admin.dashboard') }}">Admin</a>
+                    <a class="nav-link @if(request()->routeIs('admin.payments')) active @endif" href="{{ route('admin.payments') }}">Payments</a>
+                    <a class="nav-link @if(request()->routeIs('admin.dashboard')) active @endif" href="{{ route('admin.dashboard') }}">Admin</a>
                 @endif
             </div>
         </div>

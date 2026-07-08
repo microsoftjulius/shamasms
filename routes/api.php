@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\IotecCallbackController;
+use App\Http\Controllers\Api\UgsmsPaymentCallbackController;
 use App\Http\Controllers\Api\V1\SmsController as V1SmsController;
 use App\Http\Controllers\Api\V2\SmsController as V2SmsController;
 use Illuminate\Support\Facades\Route;
@@ -16,3 +17,4 @@ Route::prefix('v2')->group(function (): void {
 });
 
 Route::post('/iotec/callback', IotecCallbackController::class);
+Route::post('/ugsms/payment-callback', UgsmsPaymentCallbackController::class);

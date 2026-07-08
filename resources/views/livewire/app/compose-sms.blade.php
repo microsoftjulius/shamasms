@@ -1,5 +1,21 @@
 <section class="grid gap-6 lg:grid-cols-[1fr_320px]">
     <form wire:submit="send" class="panel" data-tour="compose-form">
+        @if($sendNotice)
+            <div
+                @class([
+                    'mb-5 flex items-start justify-between gap-3 rounded-lg border px-4 py-3 text-sm font-black shadow-sm',
+                    'border-emerald-200 bg-emerald-50 text-emerald-900' => $sendNoticeType === 'success',
+                    'border-amber-200 bg-amber-50 text-amber-900' => $sendNoticeType === 'warning',
+                    'border-red-200 bg-red-50 text-red-900' => $sendNoticeType === 'error',
+                ])
+                role="status"
+                aria-live="polite"
+            >
+                <span>{{ $sendNotice }}</span>
+                <button wire:click="clearSendNotice" type="button" class="shrink-0 rounded-lg px-2 py-1 text-xs hover:bg-white/70">Close</button>
+            </div>
+        @endif
+
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="page-title">Compose SMS</h1>

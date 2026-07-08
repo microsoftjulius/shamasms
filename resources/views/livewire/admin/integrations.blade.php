@@ -9,6 +9,93 @@
         </a>
     </div>
 
+    <div class="grid gap-4 md:grid-cols-4">
+        <div class="panel min-w-0">
+            <p class="text-xs font-black uppercase tracking-widest text-slate-500">UGSMS gateway</p>
+            <p class="mt-2 break-words text-lg font-black text-slate-950">{{ $activeUgsmsSetting?->label ?? 'Not configured' }}</p>
+            <p class="mt-1 text-xs font-bold text-slate-500">{{ $activeUgsmsSetting?->is_sandbox ? 'Sandbox' : 'Live' }}</p>
+        </div>
+        <div class="panel min-w-0">
+            <p class="text-xs font-black uppercase tracking-widest text-slate-500">Account balance</p>
+            <p class="mt-2 text-3xl font-black text-slate-950">
+                @if($ugsmsBalance && ($ugsmsBalance['ok'] ?? false))
+                    {{ number_format($ugsmsBalance['balance'] ?? 0) }}
+                @else
+                    —
+                @endif
+            </p>
+        </div>
+        <div class="panel min-w-0">
+            <p class="text-xs font-black uppercase tracking-widest text-slate-500">UGSMS price</p>
+            <p class="mt-2 text-3xl font-black text-sky-700">
+                @if($ugsmsBalance && ($ugsmsBalance['ok'] ?? false))
+                    {{ number_format($ugsmsBalance['unit_price'] ?? 35) }}
+                @else
+                    —
+                @endif
+            </p>
+        </div>
+        <div class="panel min-w-0">
+            <p class="text-xs font-black uppercase tracking-widest text-slate-500">Credit balance</p>
+            <p class="mt-2 text-3xl font-black text-emerald-700">
+                @if($ugsmsBalance && ($ugsmsBalance['ok'] ?? false))
+                    {{ number_format($ugsmsBalance['credits'] ?? 0) }}
+                @else
+                    —
+                @endif
+            </p>
+        </div>
+    </div>
+
+    @if($ugsmsBalance && !($ugsmsBalance['ok'] ?? false))
+        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-black text-red-800">
+            Could not load UGSMS account balance{{ isset($ugsmsBalance['message']) ? ': '.$ugsmsBalance['message'] : '.' }}
+        </div>
+    @endif
+
+    <div class="grid gap-6 lg:grid-cols-[420px_1fr]">
+    <form wire:submit="depositToUgsms" class="panel">
+        <h2 class="text-xl font-black">Deposit to UGSMS</h2>
+        <p class="page-subtitle">Initiate a mobile money payment that tops up the UGSMS account through their payments API.</p>
+        <div class="mt-5 grid gap-4">
+            <label class="label">Amount UGX <span class="req">*</span><input wire:model="ugsms_deposit_amount" type="number" min="5000" class="field"></label>
+            <label class="label">Mobile money number <span class="req">*</span><input wire:model="ugsms_deposit_phone" class="field" placeholder="0702913454"></label>
+            <div class="rounded-lg border border-sky-100 bg-sky-50 px-4 py-3 text-sm font-bold text-sky-900">
+                Callback URL: <code class="break-all">{{ url('/api/ugsms/payment-callback') }}</code>
+            </div>
+        </div>
+        @error('ugsms_deposit_amount')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
+        @error('ugsms_deposit_phone')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
+        @if($ugsmsDepositMessage)
+            <div class="mt-4 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-black text-sky-900">{{ $ugsmsDepositMessage }}</div>
+        @endif
+        <button class="mt-5 rounded-lg bg-sky-500 px-6 py-3 font-black text-white hover:bg-sky-600">Deposit to UGSMS</button>
+    </form>
+
+    <div class="panel">
+        <h2 class="text-xl font-black">UGSMS deposits</h2>
+        <div class="mt-5 overflow-x-auto">
+            <table class="table">
+                <thead><tr><th>Amount</th><th>Phone</th><th>Status</th><th>Reference</th><th>Message</th><th>Date</th></tr></thead>
+                <tbody>
+                    @forelse($ugsmsDeposits as $deposit)
+                        <tr>
+                            <td>{{ number_format($deposit->amount) }}</td>
+                            <td>{{ $deposit->phone ?: '—' }}</td>
+                            <td><span class="status-pill">{{ $deposit->status }}</span></td>
+                            <td class="max-w-52 break-words text-xs">{{ $deposit->provider_reference ?: '—' }}</td>
+                            <td class="max-w-xs text-xs leading-5">{{ data_get($deposit->metadata, 'message') ?: data_get($deposit->metadata, 'callback.message') ?: data_get($deposit->metadata, 'payload.message') ?: data_get($deposit->metadata, 'payload.error') ?: '—' }}</td>
+                            <td class="whitespace-nowrap">{{ $deposit->created_at->format('d M Y H:i') }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6">No UGSMS deposits yet.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+
     <div class="grid gap-6 lg:grid-cols-[420px_1fr]">
     <form wire:submit="save" class="panel">
         <h2 class="text-xl font-black">{{ $editingId ? 'Edit integration' : 'Add integration' }}</h2>
@@ -23,6 +110,9 @@
             @else
                 <label class="label">API key<textarea wire:model="api_key" class="field min-h-24 font-mono text-sm"></textarea></label>
                 <label class="label">API secret<textarea wire:model="api_secret" class="field min-h-24"></textarea></label>
+                @if($provider === 'sms_gateway')
+                    <label class="label">UGSMS price per SMS <span class="req">*</span><input wire:model="ugsms_unit_price" type="number" min="1" class="field" placeholder="35"></label>
+                @endif
                 <label class="label">Username<input wire:model="username" class="field"></label>
                 <label class="label">Password<input wire:model="password" type="password" class="field"></label>
             @endif
@@ -66,7 +156,7 @@
                                     <span wire:loading.remove wire:target="testIntegration({{ $setting->id }})">Test</span>
                                     <span wire:loading wire:target="testIntegration({{ $setting->id }})">Testing...</span>
                                 </button>
-                                <button wire:click="deleteIntegration({{ $setting->id }})" wire:confirm="Delete this integration?" type="button" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-black text-red-700 hover:bg-red-50">Delete</button>
+                                <button wire:click="deleteIntegration({{ $setting->id }})" data-swal-confirm="Delete this integration?" data-swal-title="Delete integration?" data-swal-icon="warning" data-swal-confirm-text="Delete" data-swal-confirm-color="#dc2626" type="button" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-black text-red-700 hover:bg-red-50">Delete</button>
                             </td>
                         </tr>
                     @endforeach
