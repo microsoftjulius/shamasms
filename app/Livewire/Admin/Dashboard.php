@@ -28,6 +28,7 @@ class Dashboard extends Component
     public ?string $userActionMessage = null;
     public array $prices = [];
     public array $creditInputs = [];
+    public array $passwordInputs = [];
     public array $tierInputs = [];
     public string $adminUsername = '';
     public string $tierName = '';
@@ -122,22 +123,30 @@ class Dashboard extends Component
         abort_unless(Auth::user()?->is_admin, 403);
 
         $this->validate([
-            "creditInputs.$userId" => ['required', 'integer', 'min:1', 'max:10000000'],
+            "creditInputs.$userId" => ['required', 'integer', 'min:1', 'max:100000000'],
         ], [
-            "creditInputs.$userId.required" => 'Enter credits to add.',
-            "creditInputs.$userId.integer" => 'Credits must be a whole number.',
-            "creditInputs.$userId.min" => 'Credits must be at least 1.',
-            "creditInputs.$userId.max" => 'Credits are too high.',
+            "creditInputs.$userId.required" => 'Enter the amount to credit.',
+            "creditInputs.$userId.integer" => 'The amount must be a whole number.',
+            "creditInputs.$userId.min" => 'The amount must be at least UGX 1.',
+            "creditInputs.$userId.max" => 'The amount is too high.',
         ]);
 
-        $credits = (int) $this->creditInputs[$userId];
+        $amount = (int) $this->creditInputs[$userId];
         $user = User::query()->findOrFail($userId);
+        $unitPrice = max(1, (int) ($user->sms_unit_price ?: 35));
+        $credits = intdiv($amount, $unitPrice);
+
+        if ($credits < 1) {
+            $this->addError("creditInputs.$userId", "Amount must buy at least 1 SMS credit at UGX ".number_format($unitPrice)." per SMS.");
+            return;
+        }
+
         $user->increment('sms_balance', $credits);
 
         SmsCreditTransaction::query()->create([
             'user_id' => $user->id,
             'type' => 'admin_credit',
-            'amount' => 0,
+            'amount' => $amount,
             'credits' => $credits,
             'provider' => 'manual',
             'provider_reference' => 'admin-'.now()->format('YmdHis').'-'.$user->id,
@@ -145,12 +154,31 @@ class Dashboard extends Component
             'metadata' => [
                 'admin_id' => Auth::id(),
                 'admin_name' => Auth::user()?->name,
+                'unit_price' => $unitPrice,
                 'credited_at' => now()->toIso8601String(),
             ],
         ]);
 
         $this->creditInputs[$userId] = null;
-        $this->userActionMessage = "{$user->name} has been credited with ".number_format($credits)." SMS credits.";
+        $this->userActionMessage = "{$user->name} has been credited UGX ".number_format($amount).", giving ".number_format($credits)." SMS credits at UGX ".number_format($unitPrice)." per SMS.";
+    }
+
+    public function changeUserPassword(int $userId): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        $this->validate([
+            "passwordInputs.$userId" => ['required', 'string', 'min:8', 'max:255'],
+        ], [
+            "passwordInputs.$userId.required" => 'Enter a new password.',
+            "passwordInputs.$userId.min" => 'The password must be at least 8 characters.',
+        ]);
+
+        $user = User::query()->findOrFail($userId);
+        $user->update(['password' => $this->passwordInputs[$userId]]);
+
+        $this->passwordInputs[$userId] = '';
+        $this->userActionMessage = "{$user->name}'s password has been changed.";
     }
 
     public function createTier(): void
@@ -324,6 +352,7 @@ class Dashboard extends Component
         foreach ($users as $user) {
             $this->prices[$user->id] ??= (int) ($user->sms_unit_price ?: 35);
             $this->creditInputs[$user->id] ??= null;
+            $this->passwordInputs[$user->id] ??= '';
         }
 
         $tiers = PriceTier::query()->orderBy('min_messages')->get();

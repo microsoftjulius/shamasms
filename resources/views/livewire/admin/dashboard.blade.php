@@ -225,7 +225,8 @@
                             <th>Credits</th>
                             <th>Sent</th>
                             <th>Price per SMS</th>
-                            <th>Credit user</th>
+                            <th>Credit amount</th>
+                            <th>Password</th>
                             <th>Verification</th>
                             <th>Role</th>
                         </tr>
@@ -254,10 +255,19 @@
                                 </td>
                                 <td>
                                     <form wire:submit="creditUser({{ $user->id }})" class="flex min-w-44 items-center gap-2">
-                                        <input wire:model="creditInputs.{{ $user->id }}" type="number" min="1" class="field mt-0 w-28" placeholder="Credits">
+                                        <input wire:model="creditInputs.{{ $user->id }}" type="number" min="1" class="field mt-0 w-28" placeholder="UGX">
                                         <button class="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-black text-white hover:bg-emerald-600">Credit</button>
                                     </form>
                                     @error('creditInputs.'.$user->id)
+                                        <p class="mt-1 text-xs font-bold text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </td>
+                                <td>
+                                    <form wire:submit="changeUserPassword({{ $user->id }})" class="flex min-w-56 items-center gap-2">
+                                        <input wire:model="passwordInputs.{{ $user->id }}" type="password" class="field mt-0 w-36" placeholder="New password" autocomplete="new-password">
+                                        <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">Set</button>
+                                    </form>
+                                    @error('passwordInputs.'.$user->id)
                                         <p class="mt-1 text-xs font-bold text-red-600">{{ $message }}</p>
                                     @enderror
                                 </td>
@@ -271,7 +281,7 @@
                                 <td><span class="status-pill">{{ $user->is_admin ? 'admin' : 'user' }}</span></td>
                             </tr>
                         @empty
-                            <tr><td colspan="8">No users found.</td></tr>
+                            <tr><td colspan="9">No users found.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
