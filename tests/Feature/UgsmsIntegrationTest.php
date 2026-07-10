@@ -106,6 +106,34 @@ class UgsmsIntegrationTest extends TestCase
         $this->assertSame(300, $result['credits']);
     }
 
+    public function test_ugsms_balance_prefers_provider_returned_user_price(): void
+    {
+        Http::fake([
+            'https://ugsms.test/api/v2/account/balance' => Http::response([
+                'balance' => 10500,
+                'user_price' => 25,
+            ]),
+        ]);
+
+        IntegrationSetting::query()->create([
+            'provider' => 'sms_gateway',
+            'label' => 'UG SMS',
+            'base_url' => 'https://ugsms.test/api/v2',
+            'api_key' => 'test-key',
+            'is_sandbox' => false,
+            'is_active' => true,
+            'metadata' => ['unit_price' => 35],
+        ]);
+
+        $result = app(UgsmsService::class)->balance();
+
+        $this->assertTrue($result['ok']);
+        $this->assertSame(10500, $result['balance']);
+        $this->assertSame(25, $result['unit_price']);
+        $this->assertSame(25, $result['provider_unit_price']);
+        $this->assertSame(420, $result['credits']);
+    }
+
     public function test_ugsms_deposit_posts_to_payments_endpoint(): void
     {
         Http::fake([

@@ -204,12 +204,17 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h2 class="text-xl font-black">All users</h2>
-                    <p class="page-subtitle">Change a user rate to control how many SMS credits they receive when buying.</p>
+                    <p class="page-subtitle">Search by name, email, or username, then verify accounts, credit balances, or change user SMS pricing.</p>
                 </div>
-                <label class="label w-full sm:max-w-xs">Search
+                <label class="label w-full sm:max-w-xs">Search user
                     <input wire:model.live.debounce.300ms="search" class="field" placeholder="Name, email, username, phone">
                 </label>
             </div>
+            @if($userActionMessage)
+                <div class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-900">
+                    {{ $userActionMessage }}
+                </div>
+            @endif
 
             <div class="mt-5 overflow-x-auto">
                 <table class="table">
@@ -220,6 +225,8 @@
                             <th>Credits</th>
                             <th>Sent</th>
                             <th>Price per SMS</th>
+                            <th>Credit user</th>
+                            <th>Verification</th>
                             <th>Role</th>
                         </tr>
                     </thead>
@@ -245,10 +252,26 @@
                                         <p class="mt-1 text-xs font-bold text-red-600">{{ $message }}</p>
                                     @enderror
                                 </td>
+                                <td>
+                                    <form wire:submit="creditUser({{ $user->id }})" class="flex min-w-44 items-center gap-2">
+                                        <input wire:model="creditInputs.{{ $user->id }}" type="number" min="1" class="field mt-0 w-28" placeholder="Credits">
+                                        <button class="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-black text-white hover:bg-emerald-600">Credit</button>
+                                    </form>
+                                    @error('creditInputs.'.$user->id)
+                                        <p class="mt-1 text-xs font-bold text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </td>
+                                <td>
+                                    @if($user->hasVerifiedEmail())
+                                        <span class="status-pill">verified</span>
+                                    @else
+                                        <button wire:click="verifyUser({{ $user->id }})" data-swal-confirm="Verify this user account now?" data-swal-title="Verify user?" data-swal-icon="question" data-swal-confirm-text="Verify" type="button" class="rounded-lg bg-sky-500 px-3 py-2 text-xs font-black text-white hover:bg-sky-600">Verify</button>
+                                    @endif
+                                </td>
                                 <td><span class="status-pill">{{ $user->is_admin ? 'admin' : 'user' }}</span></td>
                             </tr>
                         @empty
-                            <tr><td colspan="6">No users found.</td></tr>
+                            <tr><td colspan="8">No users found.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

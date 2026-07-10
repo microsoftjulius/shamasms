@@ -15,7 +15,7 @@ class BuyCredits extends Component
 {
     use WithPagination;
 
-    public int $amount = 10000;
+    public int $amount = 5000;
     public string $phone = '';
 
     public function buy(IotecPaymentService $iotec, UgandaPhoneNumber $phoneNumber): void

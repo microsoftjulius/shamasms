@@ -1,4 +1,4 @@
-<section class="space-y-6">
+<section class="space-y-6" wire:poll.60s="autoSync">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
             <h1 class="page-title">Admin integrations</h1>
@@ -8,6 +8,30 @@
             Users & analytics
         </a>
     </div>
+
+    <div class="flex flex-col gap-3 rounded-lg border border-sky-100 bg-white p-4 shadow-sm shadow-sky-100 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-lg font-black text-slate-950">UGSMS balance sync</h2>
+            <p class="page-subtitle">Fetch the latest UGSMS account balance and user price from the API.</p>
+            @if(data_get($activeUgsmsSetting?->metadata, 'synced_at'))
+                <p class="mt-1 text-xs font-bold text-slate-500">Last sync: {{ \Illuminate\Support\Carbon::parse(data_get($activeUgsmsSetting?->metadata, 'synced_at'))->format('d M Y H:i') }}</p>
+            @endif
+        </div>
+        <button wire:click="syncUgsmsBalance" wire:loading.attr="disabled" wire:target="syncUgsmsBalance" type="button" class="rounded-lg bg-sky-500 px-5 py-3 text-sm font-black text-white hover:bg-sky-600 disabled:opacity-50">
+            <span wire:loading.remove wire:target="syncUgsmsBalance">Sync UGSMS</span>
+            <span wire:loading wire:target="syncUgsmsBalance">Syncing...</span>
+        </button>
+    </div>
+
+    @if($ugsmsBalanceMessage)
+        <div @class([
+            'rounded-lg border px-4 py-3 text-sm font-black',
+            'border-emerald-200 bg-emerald-50 text-emerald-900' => $ugsmsBalance && ($ugsmsBalance['ok'] ?? false),
+            'border-red-200 bg-red-50 text-red-800' => !($ugsmsBalance && ($ugsmsBalance['ok'] ?? false)),
+        ])>
+            {{ $ugsmsBalanceMessage }}
+        </div>
+    @endif
 
     <div class="grid gap-4 md:grid-cols-4">
         <div class="panel min-w-0">
@@ -24,14 +48,28 @@
                     —
                 @endif
             </p>
+            @if($ugsmsBalance && ($ugsmsBalance['stored'] ?? false))
+                <p class="mt-1 text-xs font-bold text-slate-500">Saved from last sync</p>
+            @endif
         </div>
         <div class="panel min-w-0">
             <p class="text-xs font-black uppercase tracking-widest text-slate-500">UGSMS price</p>
             <p class="mt-2 text-3xl font-black text-sky-700">
                 @if($ugsmsBalance && ($ugsmsBalance['ok'] ?? false))
                     {{ number_format($ugsmsBalance['unit_price'] ?? 35) }}
+                @elseif(data_get($activeUgsmsSetting?->metadata, 'unit_price'))
+                    {{ number_format(data_get($activeUgsmsSetting?->metadata, 'unit_price')) }}
                 @else
                     —
+                @endif
+            </p>
+            <p class="mt-1 text-xs font-bold text-slate-500">
+                @if($ugsmsBalance && ($ugsmsBalance['provider_unit_price'] ?? null))
+                    From UGSMS
+                @elseif($ugsmsBalance && ($ugsmsBalance['stored'] ?? false))
+                    Saved from last sync
+                @else
+                    Saved price
                 @endif
             </p>
         </div>
@@ -44,6 +82,9 @@
                     —
                 @endif
             </p>
+            @if($ugsmsBalance && ($ugsmsBalance['stored'] ?? false))
+                <p class="mt-1 text-xs font-bold text-slate-500">Saved from last sync</p>
+            @endif
         </div>
     </div>
 
@@ -58,7 +99,7 @@
         <h2 class="text-xl font-black">Deposit to UGSMS</h2>
         <p class="page-subtitle">Initiate a mobile money payment that tops up the UGSMS account through their payments API.</p>
         <div class="mt-5 grid gap-4">
-            <label class="label">Amount UGX <span class="req">*</span><input wire:model="ugsms_deposit_amount" type="number" min="5000" class="field"></label>
+            <label class="label">Amount UGX <span class="req">*</span><input wire:model="ugsms_deposit_amount" type="number" min="5000" class="field" placeholder="5000"></label>
             <label class="label">Mobile money number <span class="req">*</span><input wire:model="ugsms_deposit_phone" class="field" placeholder="0702913454"></label>
             <div class="rounded-lg border border-sky-100 bg-sky-50 px-4 py-3 text-sm font-bold text-sky-900">
                 Callback URL: <code class="break-all">{{ url('/api/ugsms/payment-callback') }}</code>
@@ -147,7 +188,7 @@
                             <td>{{ ['ugsms' => 'SMS Gateway', 'sms_gateway' => 'SMS Gateway', 'iotec' => 'Payment Provider', 'sendcrane' => 'Email Provider'][$setting->provider] ?? 'Provider' }}</td>
                             <td>{{ $setting->label }}</td>
                             <td><code class="block max-w-72 whitespace-normal break-all rounded bg-slate-100 px-2 py-1 text-xs text-slate-700">{{ $setting->base_url ?: 'Not set' }}</code></td>
-                            <td><code class="block max-w-80 whitespace-normal break-all rounded bg-slate-100 px-2 py-1 text-xs text-slate-700">{{ $setting->api_key ?: 'Not set' }}</code></td>
+                            <td><code class="block max-w-80 whitespace-normal break-all rounded bg-slate-100 px-2 py-1 text-xs text-slate-700">{{ $setting->api_key ? substr($setting->api_key, 0, 6).'••••••••••••'.substr($setting->api_key, -4) : 'Not set' }}</code></td>
                             <td>{{ $setting->is_sandbox ? 'Sandbox' : 'Live' }}</td>
                             <td><span class="status-pill">{{ $setting->is_active ? 'active' : 'off' }}</span></td>
                             <td class="space-x-2 whitespace-nowrap">

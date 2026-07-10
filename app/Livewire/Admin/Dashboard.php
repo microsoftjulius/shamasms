@@ -25,7 +25,9 @@ class Dashboard extends Component
     public ?string $tierMessage = null;
     public ?string $advertMessage = null;
     public ?string $paymentMessage = null;
+    public ?string $userActionMessage = null;
     public array $prices = [];
+    public array $creditInputs = [];
     public array $tierInputs = [];
     public string $adminUsername = '';
     public string $tierName = '';
@@ -100,6 +102,55 @@ class Dashboard extends Component
 
         $this->adminUsername = '';
         $this->adminMessage = "{$user->name} can now access the admin section.";
+    }
+
+    public function verifyUser(int $userId): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        $user = User::query()->findOrFail($userId);
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->forceFill(['email_verified_at' => now()])->save();
+        }
+
+        $this->userActionMessage = "{$user->name}'s account is now verified.";
+    }
+
+    public function creditUser(int $userId): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        $this->validate([
+            "creditInputs.$userId" => ['required', 'integer', 'min:1', 'max:10000000'],
+        ], [
+            "creditInputs.$userId.required" => 'Enter credits to add.',
+            "creditInputs.$userId.integer" => 'Credits must be a whole number.',
+            "creditInputs.$userId.min" => 'Credits must be at least 1.',
+            "creditInputs.$userId.max" => 'Credits are too high.',
+        ]);
+
+        $credits = (int) $this->creditInputs[$userId];
+        $user = User::query()->findOrFail($userId);
+        $user->increment('sms_balance', $credits);
+
+        SmsCreditTransaction::query()->create([
+            'user_id' => $user->id,
+            'type' => 'admin_credit',
+            'amount' => 0,
+            'credits' => $credits,
+            'provider' => 'manual',
+            'provider_reference' => 'admin-'.now()->format('YmdHis').'-'.$user->id,
+            'status' => 'success',
+            'metadata' => [
+                'admin_id' => Auth::id(),
+                'admin_name' => Auth::user()?->name,
+                'credited_at' => now()->toIso8601String(),
+            ],
+        ]);
+
+        $this->creditInputs[$userId] = null;
+        $this->userActionMessage = "{$user->name} has been credited with ".number_format($credits)." SMS credits.";
     }
 
     public function createTier(): void
@@ -272,6 +323,7 @@ class Dashboard extends Component
 
         foreach ($users as $user) {
             $this->prices[$user->id] ??= (int) ($user->sms_unit_price ?: 35);
+            $this->creditInputs[$user->id] ??= null;
         }
 
         $tiers = PriceTier::query()->orderBy('min_messages')->get();

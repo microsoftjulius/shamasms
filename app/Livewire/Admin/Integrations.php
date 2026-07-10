@@ -27,7 +27,39 @@ class Integrations extends Component
     public bool $is_sandbox = true;
     public ?string $testMessage = null;
     public ?string $ugsmsDepositMessage = null;
+    public ?string $ugsmsBalanceMessage = null;
+    public ?array $ugsmsBalance = null;
     public ?int $testingId = null;
+
+    public function mount(): void
+    {
+        $this->ugsmsBalance = $this->storedUgsmsBalance();
+    }
+
+    public function autoSync(UgsmsService $ugsms): void
+    {
+        $setting = $this->activeUgsmsSetting();
+        if (! $setting || $setting->is_sandbox) {
+            return;
+        }
+        try {
+            $fresh = $ugsms->balance();
+            if ($fresh['ok'] ?? false) {
+                $this->ugsmsBalance = $fresh;
+                $metadata = $setting->metadata ?? [];
+                $metadata['synced_balance'] = (int) ($fresh['balance'] ?? 0);
+                $metadata['synced_credits'] = (int) ($fresh['credits'] ?? 0);
+                $metadata['synced_unit_price'] = (int) ($fresh['unit_price'] ?? data_get($metadata, 'unit_price', 35));
+                $metadata['synced_at'] = now()->toIso8601String();
+                if ($fresh['provider_unit_price'] ?? null) {
+                    $metadata['unit_price'] = (int) $fresh['provider_unit_price'];
+                }
+                $setting->update(['metadata' => $metadata]);
+            }
+        } catch (\Throwable) {
+            // silently fail auto-sync
+        }
+    }
 
     public function save(): void
     {
@@ -171,11 +203,7 @@ class Integrations extends Component
         }
 
         $phone = '0'.substr($normalizedPhone['phone'], 3);
-        $unitPrice = max(1, (int) data_get(IntegrationSetting::query()
-            ->whereIn('provider', ['sms_gateway', 'ugsms'])
-            ->where('is_active', true)
-            ->latest()
-            ->first()?->metadata, 'unit_price', 35));
+        $unitPrice = max(1, (int) data_get($this->activeUgsmsSetting()?->metadata, 'unit_price', 35));
         $result = $ugsms->requestDeposit(
             $data['ugsms_deposit_amount'],
             $phone,
@@ -203,6 +231,48 @@ class Integrations extends Component
         $this->ugsmsDepositMessage = ($result['ok'] ?? false)
             ? 'UGSMS deposit request sent. Check the phone for the mobile money prompt.'
             : 'UGSMS deposit request failed: '.($result['message'] ?? 'Provider rejected the request.');
+    }
+
+    public function syncUgsmsBalance(UgsmsService $ugsms): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        try {
+            $this->ugsmsBalance = $ugsms->balance();
+        } catch (\Throwable $exception) {
+            $this->ugsmsBalance = [
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ];
+        }
+
+        if (! ($this->ugsmsBalance['ok'] ?? false)) {
+            $this->ugsmsBalanceMessage = 'Could not sync UGSMS balance: '.($this->ugsmsBalance['message'] ?? 'Provider request failed.');
+            return;
+        }
+
+        $providerUnitPrice = $this->ugsmsBalance['provider_unit_price'] ?? null;
+        $setting = $this->activeUgsmsSetting();
+
+        if ($setting) {
+            $metadata = $setting->metadata ?? [];
+            $metadata['synced_balance'] = (int) ($this->ugsmsBalance['balance'] ?? 0);
+            $metadata['synced_credits'] = (int) ($this->ugsmsBalance['credits'] ?? 0);
+            $metadata['synced_unit_price'] = (int) ($this->ugsmsBalance['unit_price'] ?? data_get($metadata, 'unit_price', 35));
+            $metadata['synced_at'] = now()->toIso8601String();
+
+            if ($providerUnitPrice) {
+                $metadata['unit_price'] = (int) $providerUnitPrice;
+                $metadata['unit_price_synced_at'] = now()->toIso8601String();
+            }
+
+            $setting->update(['metadata' => $metadata]);
+            $this->ugsms_unit_price = (int) data_get($metadata, 'unit_price', $metadata['synced_unit_price']);
+        }
+
+        $this->ugsmsBalanceMessage = $providerUnitPrice
+            ? 'UGSMS balance and user price synced.'
+            : 'UGSMS balance synced. No provider price was returned, so the saved price was used.';
     }
 
     private function resetForm(): void
@@ -282,30 +352,44 @@ class Integrations extends Component
     {
         abort_unless(Auth::user()?->is_admin, 403);
 
-        $ugsmsBalance = null;
-        try {
-            $ugsmsBalance = app(UgsmsService::class)->balance();
-        } catch (\Throwable $exception) {
-            $ugsmsBalance = [
-                'ok' => false,
-                'message' => $exception->getMessage(),
-            ];
-        }
-
         return view('livewire.admin.integrations', [
             'settings' => IntegrationSetting::query()->latest()->get(),
-            'ugsmsBalance' => $ugsmsBalance,
-            'activeUgsmsSetting' => IntegrationSetting::query()
-                ->whereIn('provider', ['sms_gateway', 'ugsms'])
-                ->where('is_active', true)
-                ->latest()
-                ->first(),
+            'ugsmsBalance' => $this->ugsmsBalance ?: $this->storedUgsmsBalance(),
+            'activeUgsmsSetting' => $this->activeUgsmsSetting(),
             'ugsmsDeposits' => SmsCreditTransaction::query()
                 ->where('type', 'ugsms_deposit')
                 ->where('provider', 'ugsms')
                 ->latest()
                 ->limit(10)
-                ->get(),
+            ->get(),
         ])->layout('layouts.app');
+    }
+
+    private function activeUgsmsSetting(): ?IntegrationSetting
+    {
+        return IntegrationSetting::query()
+            ->whereIn('provider', ['sms_gateway', 'ugsms'])
+            ->where('is_active', true)
+            ->latest()
+            ->first();
+    }
+
+    private function storedUgsmsBalance(): ?array
+    {
+        $setting = $this->activeUgsmsSetting();
+
+        if (! $setting || ! data_get($setting->metadata, 'synced_at')) {
+            return null;
+        }
+
+        return [
+            'ok' => true,
+            'balance' => (int) data_get($setting->metadata, 'synced_balance', 0),
+            'credits' => (int) data_get($setting->metadata, 'synced_credits', 0),
+            'unit_price' => (int) data_get($setting->metadata, 'synced_unit_price', data_get($setting->metadata, 'unit_price', 35)),
+            'provider_unit_price' => null,
+            'stored' => true,
+            'synced_at' => data_get($setting->metadata, 'synced_at'),
+        ];
     }
 }

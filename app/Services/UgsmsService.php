@@ -41,7 +41,7 @@ class UgsmsService
     public function balance(): array
     {
         $setting = $this->setting();
-        $unitPrice = $this->unitPrice($setting);
+        $configuredUnitPrice = $this->unitPrice($setting);
 
         if (! $setting['api_key']) {
             return [
@@ -54,8 +54,9 @@ class UgsmsService
             return [
                 'ok' => true,
                 'balance' => 10000,
-                'credits' => intdiv(10000, $unitPrice),
-                'unit_price' => $unitPrice,
+                'credits' => intdiv(10000, $configuredUnitPrice),
+                'unit_price' => $configuredUnitPrice,
+                'provider_unit_price' => null,
                 'sandbox' => true,
             ];
         }
@@ -77,12 +78,15 @@ class UgsmsService
             ?? $response->json('data.balance')
             ?? 0
         );
+        $providerUnitPrice = $this->providerUnitPrice($response->json());
+        $unitPrice = $providerUnitPrice ?: $configuredUnitPrice;
 
         return [
             'ok' => $response->successful(),
             'balance' => $balance,
             'credits' => intdiv($balance, $unitPrice),
             'unit_price' => $unitPrice,
+            'provider_unit_price' => $providerUnitPrice,
             'payload' => $response->json(),
         ];
     }
@@ -169,6 +173,28 @@ class UgsmsService
     private function unitPrice(array $setting): int
     {
         return max(1, (int) ($setting['unit_price'] ?? 35));
+    }
+
+    private function providerUnitPrice(?array $payload): ?int
+    {
+        if (! $payload) {
+            return null;
+        }
+
+        $price = data_get($payload, 'unit_price')
+            ?? data_get($payload, 'user_price')
+            ?? data_get($payload, 'sms_price')
+            ?? data_get($payload, 'price_per_sms')
+            ?? data_get($payload, 'pricePerSms')
+            ?? data_get($payload, 'rate')
+            ?? data_get($payload, 'data.unit_price')
+            ?? data_get($payload, 'data.user_price')
+            ?? data_get($payload, 'data.sms_price')
+            ?? data_get($payload, 'data.price_per_sms')
+            ?? data_get($payload, 'data.pricePerSms')
+            ?? data_get($payload, 'data.rate');
+
+        return $price ? max(1, (int) $price) : null;
     }
 
     private function baseUrl(string $baseUrl): string
