@@ -300,7 +300,16 @@
 
                     <form wire:submit="changeUserPassword" class="mt-4">
                         <label class="label">New password <span class="req">*</span>
-                            <input wire:model="passwordModalValue" type="password" class="field" placeholder="At least 8 characters" autocomplete="new-password" autofocus>
+                            <span class="password-wrap mt-1">
+                                <input wire:model="passwordModalValue" type="{{ $showPasswordModalValue ? 'text' : 'password' }}" class="field !mt-0 pr-12" placeholder="At least 8 characters" autocomplete="new-password" autofocus>
+                                <button wire:click="togglePasswordModalVisibility" type="button" class="password-eye" aria-label="{{ $showPasswordModalValue ? 'Hide password' : 'Show password' }}" title="{{ $showPasswordModalValue ? 'Hide password' : 'Show password' }}">
+                                    @if($showPasswordModalValue)
+                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6A2 2 0 0 0 13.4 13.4"/><path d="M9.9 5.1A9.8 9.8 0 0 1 12 5c5 0 9 4.5 10 7-0.5 1.2-1.6 2.8-3.1 4.1"/><path d="M6.6 6.6C4.3 8 2.8 10.4 2 12c1 2.5 5 7 10 7 1.3 0 2.5-.3 3.6-.8"/></svg>
+                                    @else
+                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    @endif
+                                </button>
+                            </span>
                         </label>
                         @error('passwordModalValue')
                             <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>

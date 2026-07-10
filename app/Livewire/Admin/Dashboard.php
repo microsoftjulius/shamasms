@@ -31,6 +31,7 @@ class Dashboard extends Component
     public array $tierInputs = [];
     public ?int $passwordModalUserId = null;
     public string $passwordModalValue = '';
+    public bool $showPasswordModalValue = false;
     public string $adminUsername = '';
     public string $tierName = '';
     public int $tierMinMessages = 1;
@@ -172,6 +173,7 @@ class Dashboard extends Component
 
         $this->passwordModalUserId = $userId;
         $this->passwordModalValue = '';
+        $this->showPasswordModalValue = false;
         $this->resetErrorBag('passwordModalValue');
     }
 
@@ -179,7 +181,13 @@ class Dashboard extends Component
     {
         $this->passwordModalUserId = null;
         $this->passwordModalValue = '';
+        $this->showPasswordModalValue = false;
         $this->resetErrorBag('passwordModalValue');
+    }
+
+    public function togglePasswordModalVisibility(): void
+    {
+        $this->showPasswordModalValue = ! $this->showPasswordModalValue;
     }
 
     public function changeUserPassword(): void
