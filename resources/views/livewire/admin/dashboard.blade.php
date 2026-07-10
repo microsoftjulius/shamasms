@@ -288,8 +288,8 @@
 
         @if($passwordModalUserId)
             @php($passwordUser = $users->firstWhere('id', $passwordModalUserId))
-            <div class="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 px-4 py-6">
-                <div class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-5 shadow-2xl shadow-slate-950/30">
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 py-6">
+                <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-2xl shadow-slate-950/30" style="width:min(420px, calc(100vw - 32px));">
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <h2 class="text-xl font-black text-slate-950">Change password</h2>
@@ -298,16 +298,16 @@
                         <button wire:click="closePasswordModal" type="button" class="rounded-lg px-3 py-2 text-sm font-black text-slate-500 hover:bg-slate-100">Close</button>
                     </div>
 
-                    <form wire:submit="changeUserPassword" class="mt-5">
+                    <form wire:submit="changeUserPassword" class="mt-4">
                         <label class="label">New password <span class="req">*</span>
                             <input wire:model="passwordModalValue" type="password" class="field" placeholder="At least 8 characters" autocomplete="new-password" autofocus>
                         </label>
                         @error('passwordModalValue')
                             <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
                         @enderror
-                        <div class="mt-5 flex flex-wrap justify-end gap-2">
-                            <button wire:click="closePasswordModal" type="button" class="rounded-lg border border-slate-200 px-5 py-3 font-black text-slate-700 hover:bg-slate-50">Cancel</button>
-                            <button class="rounded-lg bg-sky-500 px-5 py-3 font-black text-white hover:bg-sky-600">Save password</button>
+                        <div class="mt-4 flex flex-wrap justify-end gap-2">
+                            <button wire:click="closePasswordModal" type="button" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">Cancel</button>
+                            <button class="rounded-lg bg-sky-500 px-4 py-2 text-sm font-black text-white hover:bg-sky-600">Save password</button>
                         </div>
                     </form>
                 </div>
