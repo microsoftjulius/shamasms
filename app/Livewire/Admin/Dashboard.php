@@ -28,8 +28,9 @@ class Dashboard extends Component
     public ?string $userActionMessage = null;
     public array $prices = [];
     public array $creditInputs = [];
-    public array $passwordInputs = [];
     public array $tierInputs = [];
+    public ?int $passwordModalUserId = null;
+    public string $passwordModalValue = '';
     public string $adminUsername = '';
     public string $tierName = '';
     public int $tierMinMessages = 1;
@@ -163,22 +164,44 @@ class Dashboard extends Component
         $this->userActionMessage = "{$user->name} has been credited UGX ".number_format($amount).", giving ".number_format($credits)." SMS credits at UGX ".number_format($unitPrice)." per SMS.";
     }
 
-    public function changeUserPassword(int $userId): void
+    public function openPasswordModal(int $userId): void
     {
         abort_unless(Auth::user()?->is_admin, 403);
 
+        User::query()->findOrFail($userId);
+
+        $this->passwordModalUserId = $userId;
+        $this->passwordModalValue = '';
+        $this->resetErrorBag('passwordModalValue');
+    }
+
+    public function closePasswordModal(): void
+    {
+        $this->passwordModalUserId = null;
+        $this->passwordModalValue = '';
+        $this->resetErrorBag('passwordModalValue');
+    }
+
+    public function changeUserPassword(): void
+    {
+        abort_unless(Auth::user()?->is_admin, 403);
+
+        if (! $this->passwordModalUserId) {
+            return;
+        }
+
         $this->validate([
-            "passwordInputs.$userId" => ['required', 'string', 'min:8', 'max:255'],
+            'passwordModalValue' => ['required', 'string', 'min:8', 'max:255'],
         ], [
-            "passwordInputs.$userId.required" => 'Enter a new password.',
-            "passwordInputs.$userId.min" => 'The password must be at least 8 characters.',
+            'passwordModalValue.required' => 'Enter a new password.',
+            'passwordModalValue.min' => 'The password must be at least 8 characters.',
         ]);
 
-        $user = User::query()->findOrFail($userId);
-        $user->update(['password' => $this->passwordInputs[$userId]]);
+        $user = User::query()->findOrFail($this->passwordModalUserId);
+        $user->update(['password' => $this->passwordModalValue]);
 
-        $this->passwordInputs[$userId] = '';
         $this->userActionMessage = "{$user->name}'s password has been changed.";
+        $this->closePasswordModal();
     }
 
     public function createTier(): void
@@ -352,7 +375,6 @@ class Dashboard extends Component
         foreach ($users as $user) {
             $this->prices[$user->id] ??= (int) ($user->sms_unit_price ?: 35);
             $this->creditInputs[$user->id] ??= null;
-            $this->passwordInputs[$user->id] ??= '';
         }
 
         $tiers = PriceTier::query()->orderBy('min_messages')->get();

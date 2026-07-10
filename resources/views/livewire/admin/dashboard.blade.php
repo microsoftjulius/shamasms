@@ -263,13 +263,7 @@
                                     @enderror
                                 </td>
                                 <td>
-                                    <form wire:submit="changeUserPassword({{ $user->id }})" class="flex min-w-56 items-center gap-2">
-                                        <input wire:model="passwordInputs.{{ $user->id }}" type="password" class="field mt-0 w-36" placeholder="New password" autocomplete="new-password">
-                                        <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">Set</button>
-                                    </form>
-                                    @error('passwordInputs.'.$user->id)
-                                        <p class="mt-1 text-xs font-bold text-red-600">{{ $message }}</p>
-                                    @enderror
+                                    <button wire:click="openPasswordModal({{ $user->id }})" type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">Password</button>
                                 </td>
                                 <td>
                                     @if($user->hasVerifiedEmail())
@@ -291,6 +285,34 @@
                 {{ $users->links() }}
             </div>
         </div>
+
+        @if($passwordModalUserId)
+            @php($passwordUser = $users->firstWhere('id', $passwordModalUserId))
+            <div class="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 px-4 py-6">
+                <div class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-5 shadow-2xl shadow-slate-950/30">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl font-black text-slate-950">Change password</h2>
+                            <p class="mt-1 text-sm text-slate-600">{{ $passwordUser?->name ?? 'Selected user' }} · {{ $passwordUser?->username ?? '' }}</p>
+                        </div>
+                        <button wire:click="closePasswordModal" type="button" class="rounded-lg px-3 py-2 text-sm font-black text-slate-500 hover:bg-slate-100">Close</button>
+                    </div>
+
+                    <form wire:submit="changeUserPassword" class="mt-5">
+                        <label class="label">New password <span class="req">*</span>
+                            <input wire:model="passwordModalValue" type="password" class="field" placeholder="At least 8 characters" autocomplete="new-password" autofocus>
+                        </label>
+                        @error('passwordModalValue')
+                            <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+                        @enderror
+                        <div class="mt-5 flex flex-wrap justify-end gap-2">
+                            <button wire:click="closePasswordModal" type="button" class="rounded-lg border border-slate-200 px-5 py-3 font-black text-slate-700 hover:bg-slate-50">Cancel</button>
+                            <button class="rounded-lg bg-sky-500 px-5 py-3 font-black text-white hover:bg-sky-600">Save password</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endif
 
         <aside class="panel h-fit min-w-0">
             <div class="flex flex-col gap-3">
