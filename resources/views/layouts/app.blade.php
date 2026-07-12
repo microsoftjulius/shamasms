@@ -37,6 +37,7 @@
                 <a data-tour="nav-settings" class="nav-link @if(request()->routeIs('settings')) active @endif" href="{{ route('settings') }}">Settings</a>
                 @if(auth()->user()->is_admin)
                     <a class="nav-link @if(request()->routeIs('admin.payments')) active @endif" href="{{ route('admin.payments') }}">Payments</a>
+                    <a class="nav-link @if(request()->routeIs('admin.reports')) active @endif" href="{{ route('admin.reports') }}">Reports</a>
                     <a class="nav-link @if(request()->routeIs('admin.dashboard')) active @endif" href="{{ route('admin.dashboard') }}">Admin</a>
                 @endif
             </div>
